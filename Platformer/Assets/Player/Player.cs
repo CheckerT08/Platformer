@@ -31,7 +31,7 @@ public class Player : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
     private CameraFollowObject cameraFollowObject;
-    private float fallSpeedYDampingChangeThreshold;
+    private float fallVelYDampThresh; // fallSpeedYDampingChangeThreshold
     #endregion
 
     #region Game Loop
@@ -42,7 +42,12 @@ public class Player : MonoBehaviour
 
         // Camera
         cameraFollowObject = cameraFollowGO.GetComponent<CameraFollowObject>();
-        fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedDampingChangeThreshold;
+    }
+
+    private void Start()
+    {
+                fallVelYDampThresh = CameraManager.instance.fallSpeedDampingChangeThreshold;
+
     }
 
     private void Update()
@@ -50,7 +55,7 @@ public class Player : MonoBehaviour
         TouchInput();
         Movement();
         CheckTurn();
-        //HandleCamera();
+        HandleCamera();
     }
 
     #endregion
@@ -172,5 +177,21 @@ public class Player : MonoBehaviour
 
     #endregion
 
+    #region Camera
 
+    private void HandleCamera()
+    {
+        if (rb.velocity.y < fallVelYDampThresh && !CameraManager.instance.isLerpingYDamping && !CameraManager.instance.lerpedFromPlayerFalling)
+        {
+            CameraManager.instance.LerpYDamping(true);
+        }
+
+        if (rb.velocity.y >= 0f && !CameraManager.instance.isLerpingYDamping && CameraManager.instance.lerpedFromPlayerFalling)
+        {
+            CameraManager.instance.lerpedFromPlayerFalling = false;
+            CameraManager.instance.LerpYDamping(false);
+        }
+    }
+
+    #endregion
 }
