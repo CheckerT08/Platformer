@@ -40,15 +40,12 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-
-        // Camera
         cameraFollowObject = cameraFollowGO.GetComponent<CameraFollowObject>();
     }
 
     private void Start()
     {
-                fallVelYDampThresh = CameraManager.instance.fallSpeedDampingChangeThreshold;
-
+        fallVelYDampThresh = CameraManager.instance.fallSpeedDampingChangeThreshold;
     }
 
     private void Update()
@@ -68,8 +65,6 @@ public class Player : MonoBehaviour
 #if UNITY_EDITOR // Else UNITY_ANDOID is buggy
 #elif UNITY_ANDROID              
         horizontalInput = 0;
-        Debug.Log("Android");
-
         foreach (Touch touch in Input.touches)
         {
             CheckTouchZones(touch.position, touch.phase);
@@ -80,23 +75,13 @@ public class Player : MonoBehaviour
     private void CheckTouchZones(Vector2 screenPos, UnityEngine.TouchPhase touchPhase = UnityEngine.TouchPhase.Began)
     {
         if (IsWithinUIArea(leftArea, screenPos))
-        {
             horizontalInput = -1;
-        }
-        else if (IsWithinUIArea(rightArea, screenPos))
-        {
+        if (IsWithinUIArea(rightArea, screenPos))
             horizontalInput = 1;
-        }
-
         if (IsWithinUIArea(jumpArea, screenPos) && touchPhase == UnityEngine.TouchPhase.Began)
-        {
             Jump();
-        }
-
         if (IsWithinUIArea(jumpArea, screenPos) && touchPhase == UnityEngine.TouchPhase.Ended)
-        {
             CancelJump();
-        }
     }
 
     private bool IsWithinUIArea(RectTransform area, Vector2 screenPos)
@@ -114,7 +99,6 @@ public class Player : MonoBehaviour
     {
         if (context.performed)
             Jump();
-
         if (context.canceled)
             CancelJump();
     }
@@ -136,8 +120,9 @@ public class Player : MonoBehaviour
         // X Vel, Y Vel Clamp
         float targetVelocityX = horizontalInput * speed;
         float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
-        float smoothedVelocityX = Mathf.SmoothDamp(rb.velocity.x, targetVelocityX, ref currentVelocity, accelerationTime);
-        rb.velocity = new Vector2(smoothedVelocityX, Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed));
+        float VelocityX = Mathf.SmoothDamp(rb.velocity.x, targetVelocityX, ref currentVelocity, accelerationTime);
+        float VelocityY = Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed)
+        rb.velocity = new Vector2(VelocityX, VelocityY);
     }
 
     private void Jump()
