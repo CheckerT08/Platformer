@@ -127,9 +127,7 @@ public class Player : MonoBehaviour
 
     private void Jump()
     {
-        Debug.Log("Jump!");
         if (!IsGrounded()) return;
-        Debug.Log("Should Jump");
             rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
     }
 
@@ -141,7 +139,6 @@ public class Player : MonoBehaviour
     
     private bool IsGrounded()
     {
-        Debug.Log("IsGrounded?");
         return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
     }
 
