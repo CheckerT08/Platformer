@@ -121,13 +121,15 @@ public class Player : MonoBehaviour
         float targetVelocityX = horizontalInput * speed;
         float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
         float VelocityX = Mathf.SmoothDamp(rb.velocity.x, targetVelocityX, ref currentVelocity, accelerationTime);
-        float VelocityY = Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed)
+        float VelocityY = Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed);
         rb.velocity = new Vector2(VelocityX, VelocityY);
     }
 
     private void Jump()
     {
+        Debug.Log("Jump!");
         if (!IsGrounded()) return;
+        Debug.Log("Should Jump");
             rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
     }
 
@@ -139,6 +141,7 @@ public class Player : MonoBehaviour
     
     private bool IsGrounded()
     {
+        Debug.Log("IsGrounded?");
         return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
     }
 

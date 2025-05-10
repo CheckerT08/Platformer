@@ -74,7 +74,10 @@ public class CameraManager : MonoBehaviour
         }
 
         isLerpingYDamping = false;
-
-        #endregion
     }
+
+    #endregion
+
+    //Camera Swapping ab 14:30 
+
 }
