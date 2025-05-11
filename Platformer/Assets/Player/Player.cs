@@ -6,8 +6,15 @@ public class Player : MonoBehaviour
 {
     #region Variables
     [Header("Ground Check")]
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.9f, 0.2f);
+    [SerializeField] private Transform groundCheckTransform;
+    [SerializeField] private float coyoteTime = 0.15f;    
+
+    [Header("Wall Jump")]
+    [SerializeField] private Transform wallCheckTransform;
+    [SerializeField] private float wallSlideMaxFallSpeed = 5f;
+    [SerializeField] private Vector2 wallJumpPower = new Vector2(8f, 16f);
+    private bool isWallSliding;
 
     [Header("Touch Areas")]
     [SerializeField] private RectTransform leftArea;
@@ -22,17 +29,20 @@ public class Player : MonoBehaviour
     [SerializeField] private float groundAccelerationTime = 0.1f;
     [SerializeField] private float airAccelerationTime = 0.2f;
     [SerializeField] private float maxFallSpeed = 20f;
-
-    [Header("Misc")]
-    private float horizontalInput;
-    private Rigidbody2D rb;
-    public bool isFacingRight = true; // CameraFollowObject
-    private float currentVelocity;
+    [SerializeField] private LayerMask collidableLevelLayer;
 
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
     private CameraFollowObject cameraFollowObject;
     private float fallVelYDampThresh; // fallSpeedYDampingChangeThreshold
+
+    [Header("Misc")]
+    private Rigidbody2D rb;
+    public bool isFacingRight = true; // CameraFollowObject
+    private float horizontalInput;
+    private float currentVelocity;
+    private float timeSinceFallOffGround;
+
     #endregion
 
     #region Game Loop
@@ -58,7 +68,7 @@ public class Player : MonoBehaviour
 
     #endregion
 
-    #region Touch Input
+    #region Input
 
     private void TouchInput()
     {
@@ -90,10 +100,6 @@ public class Player : MonoBehaviour
         return RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
     }
 
-    #endregion
-
-    #region PlayerInput (Editor / Gamepad)
-
 #if UNITY_EDITOR
     public void InputJump(InputAction.CallbackContext context)
     {
@@ -117,6 +123,18 @@ public class Player : MonoBehaviour
         // Gravity
         rb.gravityScale = rb.velocity.y < 0f ? downwardsGravity : upwardsGravity;
 
+        //Coyote Time
+        if (IsGrounded())
+        {
+            timeSinceFallOffGround = 0f;
+        }
+        else
+        {
+            timeSinceFallOffGround += Time.deltaTime;
+        }
+
+        WallSlide();
+
         // X Vel, Y Vel Clamp
         float targetVelocityX = horizontalInput * speed;
         float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
@@ -125,21 +143,51 @@ public class Player : MonoBehaviour
         rb.velocity = new Vector2(VelocityX, VelocityY);
     }
 
+    private void WallSlide()
+    {
+        isWallSliding = !IsGrounded() && IsWalled() && horizontalInput != 0f;
+        if (!isWallSliding) return;
+
+        rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, wallSlideMaxFallSpeed, float.MaxValue));
+    }
+
+    private void WallJump()
+    {
+        Turn();
+        float direction = transform.rotation.y == 0f ? 1f : -1f;
+        rb.velocity = new Vector2 (wallJumpPower.x *  direction, wallJumpPower.y);
+
+    }
+
     private void Jump()
     {
-        if (!IsGrounded()) return;
-            rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
+        // Wall Jump
+        if (isWallSliding)
+        {
+            WallJump();
+            return;
+        }
+
+        // Normal Jump
+        if (timeSinceFallOffGround > coyoteTime) return;
+        rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
+        timeSinceFallOffGround = coyoteTime; // Only Jump once
     }
 
     private void CancelJump()
     {
         if (rb.velocity.y > 0f)
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.4f);
-    }    
+    } 
     
+    private bool IsWalled()
+    {
+        return Physics2D.OverlapCircle(wallCheckTransform.position, 0.2f, collidableLevelLayer);
+    }
+
     private bool IsGrounded()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        return Physics2D.OverlapBox(groundCheckTransform.position, groundCheckSize, 0f, collidableLevelLayer);
     }
 
     #endregion
