@@ -1,19 +1,19 @@
-// GitHub Comment
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
     #region Variables
+
     [Header("Ground Check")]
-    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.9f, 0.2f);
+    [SerializeField] private Vector2 groundCheckSize = new(0.9f, 0.2f);
     [SerializeField] private Transform groundCheckTransform;
-    [SerializeField] private float coyoteTime = 0.15f;    
+    [SerializeField] private float coyoteTime = 0.15f;
 
     [Header("Wall Jump")]
     [SerializeField] private Transform wallCheckTransform;
     [SerializeField] private float wallSlideMaxFallSpeed = 5f;
-    [SerializeField] private Vector2 wallJumpPower = new Vector2(8f, 16f);
+    [SerializeField] private Vector2 wallJumpPower = new(8f, 16f);
     private bool isWallSliding;
 
     [Header("Touch Areas")]
@@ -21,10 +21,10 @@ public class Player : MonoBehaviour
     [SerializeField] private RectTransform rightArea;
     [SerializeField] private RectTransform jumpArea;
 
-    [Header("Movement")] 
-    [SerializeField] private float speed = 8;
-    [SerializeField] private float jumpingPower = 10;
-    [SerializeField] private float upwardsGravity = 2;
+    [Header("Movement")]
+    [SerializeField] private float speed = 8f;
+    [SerializeField] private float jumpingPower = 10f;
+    [SerializeField] private float upwardsGravity = 2f;
     [SerializeField] private float downwardsGravity = 3.3f;
     [SerializeField] private float groundAccelerationTime = 0.1f;
     [SerializeField] private float airAccelerationTime = 0.2f;
@@ -34,18 +34,18 @@ public class Player : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
     private CameraFollowObject cameraFollowObject;
-    private float fallVelYDampThresh; // fallSpeedYDampingChangeThreshold
+    private float fallVelYDampThresh;
 
     [Header("Misc")]
     private Rigidbody2D rb;
-    public bool isFacingRight = true; // CameraFollowObject
+    public bool isFacingRight = true;
     private float horizontalInput;
     private float currentVelocity;
     private float timeSinceFallOffGround;
 
     #endregion
 
-    #region Game Loop
+    #region Unity Methods
 
     private void Awake()
     {
@@ -72,41 +72,36 @@ public class Player : MonoBehaviour
 
     private void TouchInput()
     {
-#if UNITY_EDITOR // Else UNITY_ANDOID is buggy
-#elif UNITY_ANDROID              
+#if UNITY_EDITOR
+        // For testing with Unity Editor
+#elif UNITY_ANDROID
         horizontalInput = 0;
         foreach (Touch touch in Input.touches)
-        {
             CheckTouchZones(touch.position, touch.phase);
-        }
 #endif
     }
 
-    private void CheckTouchZones(Vector2 screenPos, UnityEngine.TouchPhase touchPhase = UnityEngine.TouchPhase.Began)
+    private void CheckTouchZones(Vector2 screenPos, TouchPhase touchPhase = TouchPhase.Began)
     {
-        if (IsWithinUIArea(leftArea, screenPos))
-            horizontalInput = -1;
-        if (IsWithinUIArea(rightArea, screenPos))
-            horizontalInput = 1;
-        if (IsWithinUIArea(jumpArea, screenPos) && touchPhase == UnityEngine.TouchPhase.Began)
-            Jump();
-        if (IsWithinUIArea(jumpArea, screenPos) && touchPhase == UnityEngine.TouchPhase.Ended)
-            CancelJump();
+        if (IsWithinUIArea(leftArea, screenPos)) horizontalInput = -1;
+        if (IsWithinUIArea(rightArea, screenPos)) horizontalInput = 1;
+        if (IsWithinUIArea(jumpArea, screenPos))
+        {
+            if (touchPhase == TouchPhase.Began) Jump();
+            if (touchPhase == TouchPhase.Ended) CancelJump();
+        }
     }
 
     private bool IsWithinUIArea(RectTransform area, Vector2 screenPos)
     {
-        if (area == null) return false;
-        return RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
+        return area != null && RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
     }
 
 #if UNITY_EDITOR
     public void InputJump(InputAction.CallbackContext context)
     {
-        if (context.performed)
-            Jump();
-        if (context.canceled)
-            CancelJump();
+        if (context.performed) Jump();
+        if (context.canceled) CancelJump();
     }
 
     public void InputMove(InputAction.CallbackContext context)
@@ -118,68 +113,61 @@ public class Player : MonoBehaviour
     #endregion
 
     #region Movement
+
     private void Movement()
     {
-        // Gravity
         rb.gravityScale = rb.velocity.y < 0f ? downwardsGravity : upwardsGravity;
 
-        //Coyote Time
         if (IsGrounded())
-        {
             timeSinceFallOffGround = 0f;
-        }
         else
-        {
             timeSinceFallOffGround += Time.deltaTime;
-        }
 
         WallSlide();
 
-        // X Vel, Y Vel Clamp
         float targetVelocityX = horizontalInput * speed;
         float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
-        float VelocityX = Mathf.SmoothDamp(rb.velocity.x, targetVelocityX, ref currentVelocity, accelerationTime);
-        float VelocityY = Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed);
-        rb.velocity = new Vector2(VelocityX, VelocityY);
+
+        float velocityX = Mathf.SmoothDamp(rb.velocity.x, targetVelocityX, ref currentVelocity, accelerationTime);
+        float velocityY = Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed);
+
+        rb.velocity = new Vector2(velocityX, velocityY);
     }
 
     private void WallSlide()
     {
         isWallSliding = !IsGrounded() && IsWalled() && horizontalInput != 0f;
-        if (!isWallSliding) return;
-
-        rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, wallSlideMaxFallSpeed, float.MaxValue));
+        if (isWallSliding)
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, wallSlideMaxFallSpeed, float.MaxValue));
     }
 
     private void WallJump()
     {
         Turn();
         float direction = transform.rotation.y == 0f ? 1f : -1f;
-        rb.velocity = new Vector2 (wallJumpPower.x *  direction, wallJumpPower.y);
-
+        rb.velocity = new Vector2(wallJumpPower.x * direction, wallJumpPower.y);
     }
 
     private void Jump()
     {
-        // Wall Jump
         if (isWallSliding)
         {
             WallJump();
             return;
         }
 
-        // Normal Jump
         if (timeSinceFallOffGround > coyoteTime) return;
+
         rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-        timeSinceFallOffGround = coyoteTime; // Only Jump once
+        timeSinceFallOffGround = coyoteTime;
     }
 
     private void CancelJump()
     {
         if (rb.velocity.y > 0f)
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.4f);
-    } 
-    
+    }
+
     private bool IsWalled()
     {
         return Physics2D.OverlapCircle(wallCheckTransform.position, 0.2f, collidableLevelLayer);
@@ -192,19 +180,18 @@ public class Player : MonoBehaviour
 
     #endregion
 
-    #region Turn
+    #region Orientation
+
     private void CheckTurn()
     {
-        if (!isFacingRight && horizontalInput > 0f)
-            Turn();
-        else if (isFacingRight && horizontalInput < 0f)
+        if ((!isFacingRight && horizontalInput > 0f) || (isFacingRight && horizontalInput < 0f))
             Turn();
     }
 
     private void Turn()
     {
-        Vector3 rotation = new Vector3(transform.rotation.x, isFacingRight ? 180f : 0f, transform.rotation.z);
-        transform.rotation = Quaternion.Euler(rotation);
+        float newYRotation = isFacingRight ? 180f : 0f;
+        transform.rotation = Quaternion.Euler(0f, newYRotation, 0f);
         cameraFollowObject.CallTurn();
         isFacingRight = !isFacingRight;
     }
@@ -215,15 +202,15 @@ public class Player : MonoBehaviour
 
     private void HandleCamera()
     {
-        if (rb.velocity.y < fallVelYDampThresh && !CameraManager.instance.isLerpingYDamping && !CameraManager.instance.lerpedFromPlayerFalling)
-        {
-            CameraManager.instance.LerpYDamping(true);
-        }
+        var cm = CameraManager.instance;
 
-        if (rb.velocity.y >= 0f && !CameraManager.instance.isLerpingYDamping && CameraManager.instance.lerpedFromPlayerFalling)
+        if (rb.velocity.y < fallVelYDampThresh && !cm.isLerpingYDamping && !cm.lerpedFromPlayerFalling)
+            cm.LerpYDamping(true);
+
+        if (rb.velocity.y >= 0f && !cm.isLerpingYDamping && cm.lerpedFromPlayerFalling)
         {
-            CameraManager.instance.lerpedFromPlayerFalling = false;
-            CameraManager.instance.LerpYDamping(false);
+            cm.lerpedFromPlayerFalling = false;
+            cm.LerpYDamping(false);
         }
     }
 
