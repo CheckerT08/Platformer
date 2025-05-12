@@ -5,6 +5,8 @@ public class Player : MonoBehaviour
 {
     #region Variables
 
+    #region Movement Variables
+    
     [Header("Ground Check")]
     [SerializeField] private Vector2 groundCheckSize = new(0.9f, 0.2f);
     [SerializeField] private Transform groundCheckTransform;
@@ -16,11 +18,6 @@ public class Player : MonoBehaviour
     [SerializeField] private Vector2 wallJumpPower = new(8f, 16f);
     private bool isWallSliding;
 
-    [Header("Touch Areas")]
-    [SerializeField] private RectTransform leftArea;
-    [SerializeField] private RectTransform rightArea;
-    [SerializeField] private RectTransform jumpArea;
-
     [Header("Movement")]
     [SerializeField] private float speed = 8f;
     [SerializeField] private float jumpingPower = 10f;
@@ -30,6 +27,15 @@ public class Player : MonoBehaviour
     [SerializeField] private float airAccelerationTime = 0.2f;
     [SerializeField] private float maxFallSpeed = 20f;
     [SerializeField] private LayerMask collidableLevelLayer;
+
+    #endregion
+
+    //#region 
+
+    [Header("Touch Areas")]
+    [SerializeField] private RectTransform leftArea;
+    [SerializeField] private RectTransform rightArea;
+    [SerializeField] private RectTransform jumpArea;
 
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
