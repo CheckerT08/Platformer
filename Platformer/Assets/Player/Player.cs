@@ -6,17 +6,6 @@ public class Player : MonoBehaviour
     #region Variables
 
     #region Movement Variables
-    
-    [Header("Ground Check")]
-    [SerializeField] private Vector2 groundCheckSize = new(0.9f, 0.2f);
-    [SerializeField] private Transform groundCheckTransform;
-    [SerializeField] private float coyoteTime = 0.15f;
-
-    [Header("Wall Jump")]
-    [SerializeField] private Transform wallCheckTransform;
-    [SerializeField] private float wallSlideMaxFallSpeed = 5f;
-    [SerializeField] private Vector2 wallJumpPower = new(8f, 16f);
-    private bool isWallSliding;
 
     [Header("Movement")]
     [SerializeField] private float speed = 8f;
@@ -27,10 +16,19 @@ public class Player : MonoBehaviour
     [SerializeField] private float airAccelerationTime = 0.2f;
     [SerializeField] private float maxFallSpeed = 20f;
     [SerializeField] private LayerMask collidableLevelLayer;
+    
+    [Header("Ground Check")]
+    [SerializeField] private float coyoteTime = 0.15f;
+    [SerializeField] private Transform groundCheckTransform;
+    [SerializeField] private Vector2 groundCheckSize = new(0.9f, 0.2f);
 
+    [Header("Wall Jump")]
+    [SerializeField] private float wallSlideMaxFallSpeed = 5f;
+    [SerializeField] private Transform wallCheckTransform;
+    [SerializeField] private Vector2 wallJumpPower = new(8f, 16f);
+    private bool isWallSliding;
+    
     #endregion
-
-    //#region 
 
     [Header("Touch Areas")]
     [SerializeField] private RectTransform leftArea;
@@ -43,11 +41,11 @@ public class Player : MonoBehaviour
     private float fallVelYDampThresh;
 
     [Header("Misc")]
-    private Rigidbody2D rb;
     public bool isFacingRight = true;
     private float horizontalInput;
     private float currentVelocity;
     private float timeSinceFallOffGround;
+    private Rigidbody2D rb;
 
     #endregion
 
