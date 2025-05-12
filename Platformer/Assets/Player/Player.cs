@@ -144,8 +144,6 @@ public class Player : MonoBehaviour
         // GRAVITY
         rb.gravityScale = rb.velocity.y < 0f ? downwardsGravity : upwardsGravity;
 
-
-        print(IsGrounded());
         // ON GROUND
         if (IsGrounded())
         {
@@ -232,7 +230,6 @@ public class Player : MonoBehaviour
     {
 
         Vector2 scanPosition = new Vector2(transform.position.x, transform.position.y - 1f);
-        print(scanPosition);
         return Physics2D.OverlapBox(scanPosition, groundCheckSize, 0f, collidableLevelLayer);
     }
 
