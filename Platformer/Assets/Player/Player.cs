@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,13 +28,20 @@ public class Player : MonoBehaviour
     [SerializeField] private Transform wallCheckTransform;
     [SerializeField] private Vector2 wallJumpPower = new(8f, 16f);
     private bool isWallSliding;
-    
+
+    [Header("Dash")]
+    [SerializeField] private float dashTime = 0.5f;
+    [SerializeField] private float dashSpeed = 10f;
+    private bool isDashing;
+    private bool canDash;
+
     #endregion
 
     [Header("Touch Areas")]
     [SerializeField] private RectTransform leftArea;
     [SerializeField] private RectTransform rightArea;
     [SerializeField] private RectTransform jumpArea;
+    [SerializeField] private RectTransform dashArea;
 
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
@@ -85,14 +93,18 @@ public class Player : MonoBehaviour
 #endif
     }
 
-    private void CheckTouchZones(Vector2 screenPos, TouchPhase touchPhase = TouchPhase.Began)
+    private void CheckTouchZones(Vector2 screenPos, UnityEngine.TouchPhase touchPhase = UnityEngine.TouchPhase.Began)
     {
         if (IsWithinUIArea(leftArea, screenPos)) horizontalInput = -1;
         if (IsWithinUIArea(rightArea, screenPos)) horizontalInput = 1;
         if (IsWithinUIArea(jumpArea, screenPos))
         {
-            if (touchPhase == TouchPhase.Began) Jump();
-            if (touchPhase == TouchPhase.Ended) CancelJump();
+            if (touchPhase == UnityEngine.TouchPhase.Began) Jump();
+            if (touchPhase == UnityEngine.TouchPhase.Ended) CancelJump();
+        }
+        if (IsWithinUIArea(dashArea, screenPos))
+        {
+            if (touchPhase == UnityEngine.TouchPhase.Began) Dash();
         }
     }
 
@@ -101,17 +113,23 @@ public class Player : MonoBehaviour
         return area != null && RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
     }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR    
+    public void InputMove(InputAction.CallbackContext context)
+    {
+        horizontalInput = context.ReadValue<Vector2>().x;
+    }
+
     public void InputJump(InputAction.CallbackContext context)
     {
         if (context.performed) Jump();
         if (context.canceled) CancelJump();
     }
 
-    public void InputMove(InputAction.CallbackContext context)
+    public void InputDash(InputAction.CallbackContext context)
     {
-        horizontalInput = context.ReadValue<Vector2>().x;
+        if (context.performed) Dash();
     }
+
 #endif
 
     #endregion
@@ -119,16 +137,31 @@ public class Player : MonoBehaviour
     #region Movement
 
     private void Movement()
-    {
+    {        
+        // DASH
+        if (isDashing) return;
+
+        // GRAVITY
         rb.gravityScale = rb.velocity.y < 0f ? downwardsGravity : upwardsGravity;
 
-        if (IsGrounded())
-            timeSinceFallOffGround = 0f;
-        else
-            timeSinceFallOffGround += Time.deltaTime;
 
+        print(IsGrounded());
+        // ON GROUND
+        if (IsGrounded())
+        {
+            timeSinceFallOffGround = 0f;
+            canDash = true;
+        }
+        else
+        {
+            timeSinceFallOffGround += Time.deltaTime;
+        }
+
+
+        // WALL JUMP
         WallSlide();
 
+        // VELOCITY
         float targetVelocityX = horizontalInput * speed;
         float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
 
@@ -148,8 +181,26 @@ public class Player : MonoBehaviour
     private void WallJump()
     {
         Turn();
-        float direction = transform.rotation.y == 0f ? 1f : -1f;
-        rb.velocity = new Vector2(wallJumpPower.x * direction, wallJumpPower.y);
+        rb.velocity = new Vector2(wallJumpPower.x * GetDirection(), wallJumpPower.y);
+    }
+
+    private void Dash()
+    {
+        if (!canDash) return;
+        StartCoroutine(PerformDash());
+    }
+
+    private IEnumerator PerformDash()
+    {
+        canDash = false;
+        isDashing = true;
+        float originalGravityScale = rb.gravityScale;
+        rb.gravityScale = 0f;
+        rb.velocity = new Vector2(GetDirection() * dashSpeed, 0f);
+        yield return new WaitForSeconds(dashTime);
+        rb.gravityScale = originalGravityScale;
+        isDashing = false;
+        rb.velocity = new Vector2(rb.velocity.x * 0.7f, rb.velocity.y);
     }
 
     private void Jump()
@@ -179,7 +230,15 @@ public class Player : MonoBehaviour
 
     private bool IsGrounded()
     {
-        return Physics2D.OverlapBox(groundCheckTransform.position, groundCheckSize, 0f, collidableLevelLayer);
+
+        Vector2 scanPosition = new Vector2(transform.position.x, transform.position.y - 1f);
+        print(scanPosition);
+        return Physics2D.OverlapBox(scanPosition, groundCheckSize, 0f, collidableLevelLayer);
+    }
+
+    private float GetDirection()
+    {
+        return transform.rotation.y == 0f ? 1f : -1f;
     }
 
     #endregion
