@@ -17,7 +17,7 @@ public class Player : MonoBehaviour
     [SerializeField] private float airAccelerationTime = 0.2f;
     [SerializeField] private float maxFallSpeed = 20f;
     [SerializeField] private LayerMask collidableLevelLayer;
-    
+
     [Header("Ground Check")]
     [SerializeField] private float coyoteTime = 0.15f;
     [SerializeField] private Transform groundCheckTransform;
@@ -27,11 +27,15 @@ public class Player : MonoBehaviour
     [SerializeField] private float wallSlideMaxFallSpeed = 5f;
     [SerializeField] private Transform wallCheckTransform;
     [SerializeField] private Vector2 wallJumpPower = new(8f, 16f);
+    [SerializeField] private float wallJumpForcedTime = 0.2f;
     private bool isWallSliding;
+    private float wallJumpDirectionLockTimer;
+    private float wallJumpLockDirection;
 
     [Header("Dash")]
     [SerializeField] private float dashTime = 0.5f;
     [SerializeField] private float dashSpeed = 10f;
+    [SerializeField] private float dashJumpXVelocityMultiplier = 1.2f;
     private bool isDashing;
     private bool canDash;
 
@@ -76,6 +80,11 @@ public class Player : MonoBehaviour
         Movement();
         CheckTurn();
         HandleCamera();
+
+        if (wallJumpDirectionLockTimer > 0f)
+        {
+            wallJumpDirectionLockTimer -= Time.deltaTime;
+        }
     }
 
     #endregion
@@ -129,7 +138,6 @@ public class Player : MonoBehaviour
     {
         if (context.performed) Dash();
     }
-
 #endif
 
     #endregion
@@ -137,14 +145,13 @@ public class Player : MonoBehaviour
     #region Movement
 
     private void Movement()
-    {        
-        // DASH
+    {
         if (isDashing) return;
 
         // GRAVITY
         rb.gravityScale = rb.velocity.y < 0f ? downwardsGravity : upwardsGravity;
 
-        // ON GROUND
+        // GROUND CHECK
         if (IsGrounded())
         {
             timeSinceFallOffGround = 0f;
@@ -155,12 +162,17 @@ public class Player : MonoBehaviour
             timeSinceFallOffGround += Time.deltaTime;
         }
 
-
-        // WALL JUMP
+        // WALL SLIDE
         WallSlide();
 
-        // VELOCITY
-        float targetVelocityX = horizontalInput * speed;
+        // MOVEMENT LOCK NACH WALLJUMP
+        float moveInput = horizontalInput;
+        if (wallJumpDirectionLockTimer > 0f)
+        {
+            moveInput = wallJumpLockDirection;
+        }
+
+        float targetVelocityX = IsWalled() && !IsGrounded() ? 0f : moveInput * speed;
         float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
 
         float velocityX = Mathf.SmoothDamp(rb.velocity.x, targetVelocityX, ref currentVelocity, accelerationTime);
@@ -176,12 +188,6 @@ public class Player : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, wallSlideMaxFallSpeed, float.MaxValue));
     }
 
-    private void WallJump()
-    {
-        Turn();
-        rb.velocity = new Vector2(wallJumpPower.x * GetDirection(), wallJumpPower.y);
-    }
-
     private void Dash()
     {
         if (!canDash) return;
@@ -195,7 +201,13 @@ public class Player : MonoBehaviour
         float originalGravityScale = rb.gravityScale;
         rb.gravityScale = 0f;
         rb.velocity = new Vector2(GetDirection() * dashSpeed, 0f);
-        yield return new WaitForSeconds(dashTime);
+        float elapsed = 0f;
+        while (elapsed < dashTime)
+        {
+            elapsed += Time.deltaTime;
+            if (IsWalled()) break;
+            yield return null;
+        }
         rb.gravityScale = originalGravityScale;
         isDashing = false;
         rb.velocity = new Vector2(rb.velocity.x * 0.7f, rb.velocity.y);
@@ -205,7 +217,19 @@ public class Player : MonoBehaviour
     {
         if (isWallSliding)
         {
-            WallJump();
+            Turn();
+            rb.velocity = new Vector2(wallJumpPower.x * GetDirection(), wallJumpPower.y);
+
+            // WallJump Lock aktivieren
+            wallJumpDirectionLockTimer = wallJumpForcedTime;
+            wallJumpLockDirection = GetDirection();
+
+            return;
+        }
+
+        if (isDashing)
+        {
+            rb.velocity = new Vector2(rb.velocity.x * dashJumpXVelocityMultiplier, jumpingPower);
             return;
         }
 
@@ -228,7 +252,6 @@ public class Player : MonoBehaviour
 
     private bool IsGrounded()
     {
-
         Vector2 scanPosition = new Vector2(transform.position.x, transform.position.y - 1f);
         return Physics2D.OverlapBox(scanPosition, groundCheckSize, 0f, collidableLevelLayer);
     }
@@ -244,6 +267,8 @@ public class Player : MonoBehaviour
 
     private void CheckTurn()
     {
+        if (isDashing) return;
+        if (wallJumpDirectionLockTimer > 0f) return; // Kein Drehen während Zwangsrichtung!
         if ((!isFacingRight && horizontalInput > 0f) || (isFacingRight && horizontalInput < 0f))
             Turn();
     }
