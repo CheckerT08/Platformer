@@ -16,10 +16,10 @@ public class Player : MonoBehaviour
     [SerializeField] private float groundAccelerationTime = 0.1f;
     [SerializeField] private float airAccelerationTime = 0.2f;
     [SerializeField] private float maxFallSpeed = 20f;
-    [SerializeField] private LayerMask collidableLevelLayer;
 
     [Header("Ground Check")]
     [SerializeField] private float coyoteTime = 0.15f;
+    [SerializeField] private LayerMask collidableLevelLayer;
     [SerializeField] private Transform groundCheckTransform;
     [SerializeField] private Vector2 groundCheckSize = new(0.9f, 0.2f);
 
@@ -32,6 +32,11 @@ public class Player : MonoBehaviour
     private float wallJumpDirectionLockTimer;
     private float wallJumpLockDirection;
 
+    [Header("Ladder")]
+    [SerializeField] private float ladderClimbSpeed = 3f;
+    [SerializeField] private float ladderFallSpeed = 7f;
+    [SerializeField] private LayerMask ladderLayer;
+    
     [Header("Dash")]
     [SerializeField] private float dashTime = 0.5f;
     [SerializeField] private float dashSpeed = 10f;
@@ -44,6 +49,8 @@ public class Player : MonoBehaviour
     [Header("Touch Areas")]
     [SerializeField] private RectTransform leftArea;
     [SerializeField] private RectTransform rightArea;
+    [SerializeField] private RectTransform upArea;
+    [SerializeField] private RectTransform downArea;
     [SerializeField] private RectTransform jumpArea;
     [SerializeField] private RectTransform dashArea;
 
@@ -55,6 +62,7 @@ public class Player : MonoBehaviour
     [Header("Misc")]
     public bool isFacingRight = true;
     private float horizontalInput;
+    private float verticalInput;
     private float currentVelocity;
     private float timeSinceFallOffGround;
     private Rigidbody2D rb;
@@ -80,11 +88,6 @@ public class Player : MonoBehaviour
         Movement();
         CheckTurn();
         HandleCamera();
-
-        if (wallJumpDirectionLockTimer > 0f)
-        {
-            wallJumpDirectionLockTimer -= Time.deltaTime;
-        }
     }
 
     #endregion
@@ -96,7 +99,8 @@ public class Player : MonoBehaviour
 #if UNITY_EDITOR
         // For testing with Unity Editor
 #elif UNITY_ANDROID
-        horizontalInput = 0;
+        horizontalInput = 0f;
+        verticalInput = 0f;
         foreach (Touch touch in Input.touches)
             CheckTouchZones(touch.position, touch.phase);
 #endif
@@ -104,8 +108,12 @@ public class Player : MonoBehaviour
 
     private void CheckTouchZones(Vector2 screenPos, UnityEngine.TouchPhase touchPhase = UnityEngine.TouchPhase.Began)
     {
-        if (IsWithinUIArea(leftArea, screenPos)) horizontalInput = -1;
-        if (IsWithinUIArea(rightArea, screenPos)) horizontalInput = 1;
+        if (IsWithinUIArea(leftArea, screenPos)) horizontalInput = -1f;
+        if (IsWithinUIArea(rightArea, screenPos)) horizontalInput = 1f;
+
+        if (IsWithinUIArea(upArea, screenPos)) verticalInput = 1f;
+        if (IsWithinUIArea(downArea, screenPos)) verticalInput = -1f;
+        
         if (IsWithinUIArea(jumpArea, screenPos))
         {
             if (touchPhase == UnityEngine.TouchPhase.Began) Jump();
@@ -126,6 +134,7 @@ public class Player : MonoBehaviour
     public void InputMove(InputAction.CallbackContext context)
     {
         horizontalInput = context.ReadValue<Vector2>().x;
+        verticalInput = context.ReadValue
     }
 
     public void InputJump(InputAction.CallbackContext context)
@@ -146,6 +155,11 @@ public class Player : MonoBehaviour
 
     private void Movement()
     {
+        if (wallJumpDirectionLockTimer > 0f)
+        {
+            wallJumpDirectionLockTimer -= Time.deltaTime;
+        }
+        
         if (isDashing) return;
 
         // GRAVITY
@@ -162,15 +176,14 @@ public class Player : MonoBehaviour
             timeSinceFallOffGround += Time.deltaTime;
         }
 
+        // LADDER
+        if (Ladder()) return;
+
         // WALL SLIDE
         WallSlide();
 
-        // MOVEMENT LOCK NACH WALLJUMP
-        float moveInput = horizontalInput;
-        if (wallJumpDirectionLockTimer > 0f)
-        {
-            moveInput = wallJumpLockDirection;
-        }
+        // MOVEMENT
+        float moveInput = wallJumpDirectionLockTimer > 0f ? wallJumpLookDirection : horizontalInput; // Wall Jump Lock
 
         float targetVelocityX = IsWalled() && !IsGrounded() ? 0f : moveInput * speed;
         float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
@@ -187,6 +200,45 @@ public class Player : MonoBehaviour
         if (isWallSliding)
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, wallSlideMaxFallSpeed, float.MaxValue));
     }
+
+    private bool Ladder()
+    {
+        if (!IsLadder()) return false;
+        if (wallJumpDirectionLockTImer > 0f) return false;
+    
+        rb.gravityScale = 0f;
+    
+        float velocityY = verticalInput < 0f ? ladderFallSpeed : verticalInput > 0f ? ladderClimbSpeed : 0f;
+    
+        float velocityX;
+    
+        if (velocityY == 0f)
+        {
+            // Normale horizontale Bewegung
+            velocityX = Mathf.SmoothDamp(rb.velocity.x, moveInput * speed, ref currentVelocity, groundAccelerationTime);
+        }
+        else
+        {
+            // Ziel-X auf nächstgelegene .5 endende Zahl snappen (immer aufwärts)
+            float targetX = Mathf.Floor(rb.position.x) + 0.5f;
+    
+            // Jitter vermeiden, wenn Spieler fast genau drauf ist
+            if (Mathf.Abs(rb.position.x - targetX) < 0.01f)
+            {
+                velocityX = 0f;
+                transform.position = new Vector2(targetX, transform.position.y);
+            }
+            else
+            {
+                velocityX = Mathf.SmoothDamp(rb.position.x, targetX, ref currentVelocity, snapTime);
+            }
+        }
+    
+        rb.velocity = new Vector2(velocityX, velocityY);
+    
+        return true;
+    }
+
 
     private void Dash()
     {
@@ -245,15 +297,20 @@ public class Player : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.4f);
     }
 
-    private bool IsWalled()
+    private bool IsWall()
     {
         return Physics2D.OverlapCircle(wallCheckTransform.position, 0.2f, collidableLevelLayer);
     }
 
-    private bool IsGrounded()
+    private bool IsGround()
     {
         Vector2 scanPosition = new Vector2(transform.position.x, transform.position.y - 1f);
         return Physics2D.OverlapBox(scanPosition, groundCheckSize, 0f, collidableLevelLayer);
+    }
+
+    private bool IsLadder()
+    {
+        return Physics2D.OverlapCircle(new Vector2(0f, 0f), 0.5f, ladderLayer);
     }
 
     private float GetDirection()
