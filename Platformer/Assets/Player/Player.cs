@@ -194,12 +194,12 @@ public class Player : MonoBehaviour
         if (!IsLadder()) return false;    
         rb.gravityScale = 0f;
 
+        float velocityX = rb.velocity.x * 0.5f;
         float velocityY = vertical == 1f ? ladderClimbSpeed : ladderFallSpeed;
-        rb.velocity = new Vector2(rb.velocity.x, velocityY);
+        rb.velocity = new Vector2(velocityX, velocityY);
     
         return true;
     }
-
 
     private void Dash()
     {
@@ -258,6 +258,7 @@ public class Player : MonoBehaviour
     {
         if (rb.velocity.y > 0f)
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.4f);
+        vertical = 0f;
     }
 
     private bool IsWall()
