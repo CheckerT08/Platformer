@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Linq;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -11,11 +12,11 @@ public class PlayerAttack : MonoBehaviour
     
     private void Attack(string attackName)
     {
-        Attack attack = attacks.where(attack => attack.name == attackName);
+        Attack attack = attacks.FirstOrDefault(attack => attack.name == attackName);
         if (attack == null) return;
         cooldown = 100f;
         
-        Effect
+        // Effect
         
         for (int i = 0; i < attack.hitRepeatAmount; i++)
         {
@@ -24,7 +25,7 @@ public class PlayerAttack : MonoBehaviour
             {
                 // Damage Enemie
                 
-                foreach (Effect in atack.effects)
+                foreach (Effect effect in attack.effects)
                 {
                     // Apply Effect
                 }
@@ -45,7 +46,7 @@ public class Attack
     public int hitRepeatAmount;
     public Vector2 range;
     public Vector2 offset;
-    public Effect[] appliedEffects
+    public Effect[] effects;
 }
 
 [Serializable]

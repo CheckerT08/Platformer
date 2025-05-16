@@ -127,7 +127,7 @@ public class Player : MonoBehaviour
     public void InputMove(InputAction.CallbackContext context)
     {
         horizontalInput = context.ReadValue<Vector2>().x;
-        verticalInput = context.ReadValue<Vector2>().y;
+        vertical = context.ReadValue<Vector2>().y;
     }
 
     public void InputJump(InputAction.CallbackContext context)
@@ -191,10 +191,10 @@ public class Player : MonoBehaviour
     private bool Ladder()
     {
         if (wallJumpDirectionLockTimer > 0f) return false;
-        if (!IsLadder()) return;    
+        if (!IsLadder()) return false;    
         rb.gravityScale = 0f;
-    
-        float velocityY = vertical == 1f ? ladderClimbSpeed : ladderFallSpeed
+
+        float velocityY = vertical == 1f ? ladderClimbSpeed : ladderFallSpeed;
         rb.velocity = new Vector2(rb.velocity.x, velocityY);
     
         return true;
@@ -273,6 +273,7 @@ public class Player : MonoBehaviour
 
     private bool IsLadder()
     {
+        if (IsGround()) return false;
         return Physics2D.OverlapCircle(transform.position - new Vector3(0f, 1f), 0.5f, ladderLayer);
     }
 
