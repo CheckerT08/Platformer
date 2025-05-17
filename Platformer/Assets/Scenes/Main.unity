@@ -1452,14 +1452,6 @@ CompositeCollider2D:
         Y: -73583328
       - X: 115583336
         Y: -73583328
-    - - X: -73416664
-        Y: 63083332
-      - X: -94583336
-        Y: 63083332
-      - X: -94583336
-        Y: 41916668
-      - X: -73416664
-        Y: 41916668
     - - X: -20916666
         Y: 52583332
       - X: -42083336
@@ -1522,10 +1514,6 @@ CompositeCollider2D:
       - {x: -24.141697, y: 7.358333}
       - {x: -26.258331, y: 7.358303}
       - {x: -26.258303, y: -7.358333}
-    - - {x: -7.3416963, y: 4.191667}
-      - {x: -7.3416963, y: 6.3083334}
-      - {x: -9.458334, y: 6.3083043}
-      - {x: -9.458304, y: 4.191667}
     - - {x: -2.091696, y: -3.1583335}
       - {x: -2.091696, y: 5.258333}
       - {x: -4.2083335, y: 5.258304}
@@ -3444,26 +3432,6 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741826
-  - first: {x: -9, y: 4, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 9
-      m_TileSpriteIndex: 8
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741826
-  - first: {x: -8, y: 4, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 9
-      m_TileSpriteIndex: 7
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741826
   - first: {x: -4, y: 4, z: 0}
     second:
       serializedVersion: 2
@@ -3524,26 +3492,6 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741826
-  - first: {x: -9, y: 5, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 9
-      m_TileSpriteIndex: 5
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741826
-  - first: {x: -8, y: 5, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 9
-      m_TileSpriteIndex: 4
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741826
   - first: {x: -25, y: 6, z: 0}
     second:
       serializedVersion: 2
@@ -3584,7 +3532,7 @@ Tilemap:
     m_Data: {fileID: 0}
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 192
+  - m_RefCount: 188
     m_Data: {fileID: 11400000, guid: 1773f642e23acf14ca02135718b26a34, type: 2}
   m_TileSpriteArray:
   - m_RefCount: 24
@@ -3595,18 +3543,18 @@ Tilemap:
     m_Data: {fileID: 1840195323, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
   - m_RefCount: 36
     m_Data: {fileID: 1963443048, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
-  - m_RefCount: 9
+  - m_RefCount: 8
     m_Data: {fileID: -854274448, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
-  - m_RefCount: 12
+  - m_RefCount: 11
     m_Data: {fileID: 976758097, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
   - m_RefCount: 44
     m_Data: {fileID: 1743016740, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
-  - m_RefCount: 7
-    m_Data: {fileID: -1262419057, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
   - m_RefCount: 6
+    m_Data: {fileID: -1262419057, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
+  - m_RefCount: 5
     m_Data: {fileID: 466530979, guid: b4dc9addb0b585e4293d02ea2b7959b9, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 192
+  - m_RefCount: 188
     m_Data:
       e00: 1
       e01: 0
@@ -3625,7 +3573,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 192
+  - m_RefCount: 188
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -4876,11 +4824,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   groundCheckTransform: {fileID: 0}
-  groundCheckSize: {x: 0.9, y: 0.1}
+  groundCheckSize: {x: 0.5, y: 0.1}
   wallSlideMaxFallSpeed: -4
   wallCheckTransform: {fileID: 2042011145}
   wallJumpPower: {x: 10, y: 10}
-  wallJumpForcedTime: 0.2
+  wallJumpForcedTime: 0.3
   ladderClimbSpeed: 3
   ladderFallSpeed: -7
   ladderLayer:

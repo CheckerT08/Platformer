@@ -86,6 +86,7 @@ public class Player : MonoBehaviour
         Movement();
         CheckTurn();
         HandleCamera();
+        print(vertical);
     }
 
     #endregion
@@ -109,6 +110,7 @@ public class Player : MonoBehaviour
         
         if (IsWithinUIArea(jumpArea, screenPos))
         {
+            vertical = 1f;
             if (touchPhase == UnityEngine.TouchPhase.Began) Jump();
             if (touchPhase == UnityEngine.TouchPhase.Ended) CancelJump();
         }
@@ -127,11 +129,11 @@ public class Player : MonoBehaviour
     public void InputMove(InputAction.CallbackContext context)
     {
         horizontalInput = context.ReadValue<Vector2>().x;
-        vertical = context.ReadValue<Vector2>().y;
     }
 
     public void InputJump(InputAction.CallbackContext context)
     {
+        print("Input Jump");
         if (context.performed) Jump();
         if (context.canceled) CancelJump();
     }
@@ -194,7 +196,7 @@ public class Player : MonoBehaviour
         if (!IsLadder()) return false;    
         rb.gravityScale = 0f;
 
-        float velocityX = rb.velocity.x * 0.5f;
+        float velocityX = rb.velocity.x * 0.9f;
         float velocityY = vertical == 1f ? ladderClimbSpeed : ladderFallSpeed;
         rb.velocity = new Vector2(velocityX, velocityY);
     
@@ -229,10 +231,11 @@ public class Player : MonoBehaviour
     private void Jump()
     {
         vertical = 1f;
-        
+
         if (isWallSliding)
         {
-            Turn();
+            Turn();            print("Wall Jump, " + GetDirection());
+
             rb.velocity = new Vector2(wallJumpPower.x * GetDirection(), wallJumpPower.y);
 
             // WallJump Lock aktivieren
@@ -263,6 +266,7 @@ public class Player : MonoBehaviour
 
     private bool IsWall()
     {
+        if (IsLadder()) return false;
         return Physics2D.OverlapCircle(wallCheckTransform.position, 0.2f, collidableLevelLayer);
     }
 
@@ -275,7 +279,7 @@ public class Player : MonoBehaviour
     private bool IsLadder()
     {
         if (IsGround()) return false;
-        return Physics2D.OverlapCircle(transform.position - new Vector3(0f, 1f), 0.5f, ladderLayer);
+        return Physics2D.OverlapCircle(transform.position - new Vector3(0f, 1f), 0.6f, ladderLayer);
     }
 
     private float GetDirection()
