@@ -234,11 +234,10 @@ public class Player : MonoBehaviour
 
         if (isWallSliding)
         {
-            Turn();            print("Wall Jump, " + GetDirection());
-
+            Turn();            
             rb.velocity = new Vector2(wallJumpPower.x * GetDirection(), wallJumpPower.y);
 
-            // WallJump Lock aktivieren
+            // WallJump Lock
             wallJumpDirectionLockTimer = wallJumpForcedTime;
             wallJumpLockDirection = GetDirection();
 
