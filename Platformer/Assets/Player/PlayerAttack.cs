@@ -8,16 +8,23 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private LayerMask enemieLayer;
     [SerializeField] private Attack[] attacks;
 
+    private bool isAttacking;
     private float cooldown;
     
     private void Attack(string attackName)
     {
         Attack attack = attacks.FirstOrDefault(attack => attack.name == attackName);
         if (attack == null) return;
-        cooldown = 100f;
+        if (isAttacking) return;
+        isAttacking = true;
         
-        // Effect
+        PerformAttack(attack);
         
+        cooldown = attack.cooldown;
+    }
+
+    private IEnumerator PerformAttack(Attack attack)
+    {
         for (int i = 0; i < attack.hitRepeatAmount; i++)
         {
             Collider2D[] enemiesToDamage = Physics2D.OverlapBoxAll((Vector2)player.transform.position + attack.offset, attack.range, 0, enemieLayer);
@@ -30,10 +37,13 @@ public class PlayerAttack : MonoBehaviour
                     // Apply Effect
                 }
             }
+            yield return new WaitForSeconds(1f); // Cooldown between hits
         }
-        
-        cooldown = attack.cooldown;
+
+        isAttacking = false;
+        cooldown = attack.cooldown; // After attack cooldown
     }
+
 }
 
 [Serializable]
