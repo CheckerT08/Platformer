@@ -1,23 +1,38 @@
-[CreateAssetMenu(menuName = "Attacks/Melee")]
+using UnityEngine;
+using System.Collections;
+
+[CreateAssetMenu(menuName = "Attacks/MeleeAttack")]
 public class MeleeAttack : Attack
 {
-    public float movementMultiplier 
-    public Vector2 attackSize;
-    public float[] attackRepeatTimes;
+    public float hitInterval = 0.2f;
 
-    public override IEnumerator Execute(Transform attacker, Vector2 direction)
+    public override IEnumerator Execute(Transform attacker, LayerMask targetLayer)
     {
-      // Hit
-        Collider2D[] hits = Physics2D.OverlapCircleAll(attacker.position + (Vector3)(direction * range), hitRadius);
-        foreach (var hit in hits)
+        for (int i = 0; i < hitRepeatAmount; i++)
         {
-            if (hit.CompareTag("Enemy"))
-                hit.GetComponent<Health>().TakeDamage(damage);
+            Vector2 hitPosition = (Vector2)attacker.position + offset;
+            Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(hitPosition, range, 0, targetLayer);
+
+            foreach (Collider2D enemy in hitEnemies)
+            {
+                // Damage the enemy
+                if (enemy.TryGetComponent(out Health health))
+                    health.TakeDamage(damage);
+
+                // Apply Effects
+                foreach (var effect in effects)
+                {
+                    if (enemy.TryGetComponent(out StatusEffectReceiver receiver))
+                        receiver.ApplyEffect(effect);
+                }
+            }
+
+            if (hitRepeatAmount > 1)
+                yield return new WaitForSeconds(hitInterval);
         }
-        if (effectPrefab)
-            GameObject.Instantiate(effectPrefab, attacker.position, Quaternion.identity);
     }
 }
+
 
 [CreateAssetMenu(menuName = "Attacks/Ranged")]
 public class RangedAttack : Attack
