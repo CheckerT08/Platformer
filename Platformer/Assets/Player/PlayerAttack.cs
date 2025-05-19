@@ -43,20 +43,18 @@ public class PlayerAttack : MonoBehaviour
         isAttacking = false;
         cooldown = attack.cooldown; // After attack cooldown
     }
-
 }
 
-[Serializable]
-public class Attack
+public abstract class Attack : ScriptableObject
 {
-    public string name;
-    public float cooldown;
+    public string attackName;
+    public float attackCooldown;
+    public float playerCooldown;
     public float castTime;
     public float damage;
-    public int hitRepeatAmount;
-    public Vector2 range;
-    public Vector2 offset;
     public Effect[] effects;
+
+    public abstract IEnumerator Execute(Vector2 direction);
 }
 
 [Serializable]
