@@ -1,83 +1,49 @@
 using UnityEngine;
 using System;
+using System.Collections;
 using System.Linq;
 
 public class PlayerAttack : MonoBehaviour
 {
     [SerializeField] private Player player;
-    [SerializeField] private LayerMask enemieLayer;
+    [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private Attack[] attacks;
 
     private bool isAttacking;
-    private float cooldown;
-    
-    private void Attack(string attackName)
+    private float globalCooldownTimer;
+
+    private void Update()
     {
-        Attack attack = attacks.FirstOrDefault(attack => attack.name == attackName);
+        globalCooldownTimer -= Time.deltaTime;
+
+        // Example Input (Replace with your actual input handling)
+        if (Input.GetKeyDown(KeyCode.Z))
+            TryAttack("Slash");
+        if (Input.GetKeyDown(KeyCode.X))
+            TryAttack("Fireball");
+    }
+
+    public void TryAttack(string attackName)
+    {
+        if (isAttacking || globalCooldownTimer > 0f) return;
+
+        Attack attack = attacks.FirstOrDefault(a => a.attackName == attackName);
         if (attack == null) return;
-        if (isAttacking) return;
-        isAttacking = true;
-        
-        PerformAttack(attack);
-        
-        cooldown = attack.cooldown;
+
+        StartCoroutine(HandleAttack(attack));
     }
 
-    private IEnumerator PerformAttack(Attack attack)
+    private IEnumerator HandleAttack(Attack attack)
     {
-        for (int i = 0; i < attack.hitRepeatAmount; i++)
-        {
-            Collider2D[] enemiesToDamage = Physics2D.OverlapBoxAll((Vector2)player.transform.position + attack.offset, attack.range, 0, enemieLayer);
-            foreach (Collider2D enemy in enemiesToDamage)
-            {
-                // Damage Enemie
-                
-                foreach (Effect effect in attack.effects)
-                {
-                    // Apply Effect
-                }
-            }
-            yield return new WaitForSeconds(1f); // Cooldown between hits
-        }
+        isAttacking = true;
 
+        // Optional: Add cast time delay
+        if (attack.castTime > 0f)
+            yield return new WaitForSeconds(attack.castTime);
+
+        yield return StartCoroutine(attack.Execute(transform, enemyLayer));
+
+        globalCooldownTimer = attack.playerCooldown;
         isAttacking = false;
-        cooldown = attack.cooldown; // After attack cooldown
     }
-}
-
-public abstract class Attack : ScriptableObject
-{
-    public string attackName;
-    public float attackCooldown;
-    public float playerCooldown;
-    public float castTime;
-    public float damage;
-    public Effect[] effects;
-
-    public abstract IEnumerator Execute(Vector2 direction);
-}
-
-[Serializable]
-public class Effect
-{
-    public EffectW effect;
-    public float duration;
-}
-
-
-public enum EffectW
-{
-    Fire,
-    Poison,
-    Bleed,
-    
-    Speed,
-    Slowness,
-    Haste,
-    AntiHaste,
-    
-    Weakness,
-    Strength,
-    AttackWeakness,
-    AttackStrength
 }
