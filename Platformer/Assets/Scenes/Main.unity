@@ -28096,6 +28096,7 @@ GameObject:
   - component: {fileID: 1133829661}
   - component: {fileID: 1133829660}
   - component: {fileID: 1133829659}
+  - component: {fileID: 1133829663}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -28189,6 +28190,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1133829663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1133829658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe7b65de5abbdcb4c83d68b4eed85749, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hi: 0
+  att: {fileID: 11400000, guid: bfaa59a05fef32b44a8ed944784c6c41, type: 2}
+  bye: 0
 --- !u!1 &1398390853
 GameObject:
   m_ObjectHideFlags: 0
@@ -28270,6 +28286,7 @@ GameObject:
   - component: {fileID: 1554604069}
   - component: {fileID: 1554604073}
   - component: {fileID: 1554604074}
+  - component: {fileID: 1554604075}
   m_Layer: 3
   m_Name: PLAYER
   m_TagString: Untagged
@@ -28487,6 +28504,26 @@ MonoBehaviour:
   dashArea: {fileID: 358107478}
   cameraFollowGO: {fileID: 726157433}
   isFacingRight: 1
+--- !u!114 &1554604075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1554604067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ec8cab366a30af439b5670a62e35acb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 1554604074}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 2048
+  attacks:
+  - {fileID: 11400000, guid: 3d8903d0ea3441049b0dbc4cc5ae6480, type: 2}
+  - {fileID: 11400000, guid: b8b67b13abcd68445b051f8301bc94f2, type: 2}
+  - {fileID: 11400000, guid: 148c7c35fbdd3fc418e299a5fc3e7018, type: 2}
 --- !u!1 &1731515871
 GameObject:
   m_ObjectHideFlags: 0

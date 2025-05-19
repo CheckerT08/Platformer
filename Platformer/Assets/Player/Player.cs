@@ -86,7 +86,6 @@ public class Player : MonoBehaviour
         Movement();
         CheckTurn();
         HandleCamera();
-        print(vertical);
     }
 
     #endregion
@@ -133,7 +132,6 @@ public class Player : MonoBehaviour
 
     public void InputJump(InputAction.CallbackContext context)
     {
-        print("Input Jump");
         if (context.performed) Jump();
         if (context.canceled) CancelJump();
     }

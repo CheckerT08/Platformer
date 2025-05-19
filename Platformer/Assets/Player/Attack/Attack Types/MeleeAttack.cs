@@ -1,13 +1,21 @@
-using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 [CreateAssetMenu(menuName = "Attacks/MeleeAttack")]
 public class MeleeAttack : Attack
 {
-    public float hitInterval = 0.2f;
+    public float hitInterval;
+    public float hitRepeatAmount;
+    public Vector2 offset;
+    public Vector2 range;
 
     public override IEnumerator Execute(Transform attacker, LayerMask targetLayer)
     {
+        Debug.Log("Melee " + hitRepeatAmount);
+        yield return null;
+
+        /*
         for (int i = 0; i < hitRepeatAmount; i++)
         {
             Vector2 hitPosition = (Vector2)attacker.position + offset;
@@ -16,11 +24,9 @@ public class MeleeAttack : Attack
             foreach (Collider2D enemy in hitEnemies)
             {
                 // Damage the enemy
-                if (enemy.TryGetComponent(out Health health))
-                    health.TakeDamage(damage);
 
                 // Apply Effects
-                foreach (var effect in effects)
+                /*foreach (var effect in effects)
                 {
                     if (enemy.TryGetComponent(out StatusEffectReceiver receiver))
                         receiver.ApplyEffect(effect);
@@ -30,19 +36,7 @@ public class MeleeAttack : Attack
             if (hitRepeatAmount > 1)
                 yield return new WaitForSeconds(hitInterval);
         }
-    }
-}
+        */
 
-
-[CreateAssetMenu(menuName = "Attacks/Ranged")]
-public class RangedAttack : Attack
-{
-    public GameObject projectilePrefab;
-    public float projectileSpeed;
-
-    public override void Execute(Transform attacker, Vector2 direction)
-    {
-        GameObject proj = GameObject.Instantiate(projectilePrefab, attacker.position, Quaternion.identity);
-        proj.GetComponent<Projectile>().Initialize(direction, damage, projectileSpeed);
     }
 }

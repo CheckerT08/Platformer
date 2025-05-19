@@ -18,18 +18,21 @@ public class PlayerAttack : MonoBehaviour
 
         // Example Input (Replace with your actual input handling)
         if (Input.GetKeyDown(KeyCode.Z))
-            TryAttack("Slash");
+            TryAttack("Bow");
         if (Input.GetKeyDown(KeyCode.X))
             TryAttack("Fireball");
+        if (Input.GetKeyDown(KeyCode.B))
+            TryAttack("Sword");
     }
 
     public void TryAttack(string attackName)
     {
+        Debug.Log("Try Att " + attackName);
         if (isAttacking || globalCooldownTimer > 0f) return;
-
+        Debug.Log("1");
         Attack attack = attacks.FirstOrDefault(a => a.attackName == attackName);
         if (attack == null) return;
-
+        Debug.Log("Attack is not null");
         StartCoroutine(HandleAttack(attack));
     }
 
