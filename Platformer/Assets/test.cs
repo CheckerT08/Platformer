@@ -5,38 +5,39 @@ using UnityEngine.InputSystem;
 public class Player : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float speed = 8f;
-    [SerializeField] private float jumpForce = 16f;
-    [SerializeField] private float gravity = 40f;
-    [SerializeField] private float maxFallSpeed = 25f;
-    [SerializeField] private float groundAccelerationTime = 0.05f;
-    [SerializeField] private float airAccelerationTime = 0.2f;
+    [SerializeField] private float speed;
+    [SerializeField] private float jumpForce;
+    [SerializeField] private float gravity;
+    [SerializeField] private float maxFallSpeed;
+    [SerializeField] private float groundAccelerationTime;
+    [SerializeField] private float airAccelerationTime;
 
     [Header("Wall Jump")]
-    [SerializeField] private Vector2 wallJumpForce = new Vector2(12f, 16f);
-    [SerializeField] private float wallJumpLockTime = 0.2f;
+    [SerializeField] private Vector2 wallJumpForce;
+    [SerializeField] private float wallJumpLockTime;
 
     [Header("Dash")]
-    [SerializeField] private float dashSpeed = 20f;
-    [SerializeField] private float dashTime = 0.2f;
+    [SerializeField] private float dashSpeed;
+    [SerializeField] private float dashTime;
 
     [Header("Ladder")]
     [SerializeField] private LayerMask ladderLayer;
-    [SerializeField] private float ladderClimbSpeed = 5f;
+    [SerializeField] private float ladderClimbSpeed;
 
     [Header("Ground Check")]
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
-    [SerializeField] private Vector2 wallCheckSize = new Vector2(0.1f, 1f);
+    [SerializeField] private Vector2 groundCheckSize;
+    [SerializeField] private Vector2 wallCheckSize;
 
     [Header("Coyote Time")]
-    [SerializeField] private float coyoteTime = 0.2f;
+    [SerializeField] private float coyoteTime;
 
     [Header("Touch Controls")]
-    [SerializeField] private RectTransform leftArea;
-    [SerializeField] private RectTransform rightArea;
-    [SerializeField] private RectTransform jumpArea;
-    [SerializeField] private RectTransform dashArea;
+    [SerializeField] private Canvas touchUICanvas;
+    [SerializeField] private RectTransform leftArea; private Rect leftRect;
+    [SerializeField] private RectTransform rightArea; private Rect rightRect;
+    [SerializeField] private RectTransform jumpArea; private Rect jumpRect;
+    [SerializeField] private RectTransform dashArea; private Rect dashRect;
 
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
@@ -45,7 +46,7 @@ public class Player : MonoBehaviour
     private Vector2 input;
     private bool jumpBuffered;
     private bool dashBuffered;
-    private bool isFacingRight = true;
+    private bool isFacingRight;
     private bool isWallJumping;
     private bool isDashing;
     private float wallJumpTimer;
@@ -55,6 +56,10 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         cameraFollowObject = cameraFollowGO.GetComponent<CameraFollowObject>();
+        leftRect = GetScreenRect(leftArea, canvas);
+        rightRect = GetScreenRect(rightArea, canvas);
+        jumpRect = GetScreenRect(jumpArea, canvas);
+        dashRect = GetScreenRect(dashArea, canvas);
     }
 
     private void Update()
@@ -62,8 +67,8 @@ public class Player : MonoBehaviour
         HandleInput();
         UpdateTimers();
         ApplyPhysics();
-        HandleCamera();
         CheckFlip();
+        HandleCamera();
     }
 
     private void HandleInput()
@@ -208,9 +213,20 @@ public class Player : MonoBehaviour
         }
     }
 
-    private bool IsWithinUIArea(RectTransform area, Vector2 screenPos)
+    private bool IsWithinUIArea(Rect area, Vector2 screenPos)
     {
-        return area != null && RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
+        return area.Contains(screenPos);
+    }
+
+    public static Rect GetScreenRect(RectTransform rectTransform, Canvas canvas)
+    {
+        Vector3[] corners = new Vector3[4];
+        rectTransform.GetWorldCorners(corners);
+
+        Vector2 min = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, corners[0]);
+        Vector2 max = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, corners[2]);
+
+        return new Rect(min, max - min);
     }
 
     private void OnDrawGizmosSelected()
