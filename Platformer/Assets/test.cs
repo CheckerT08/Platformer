@@ -1,230 +1,223 @@
-// Vollständiger Raycast-basierter Player-Controller mit:
-// Bewegung, Wall Jump, Dash, Leiter, Touch-Steuerung, Kamera
-
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(BoxCollider2D))]
 public class Player : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 10f;
+    [SerializeField] private float speed = 8f;
     [SerializeField] private float jumpForce = 16f;
-    [SerializeField] private float gravityUp = 1f;
-    [SerializeField] private float gravityDown = 2f;
-    [SerializeField] private float coyoteTime = 0.1f;
-
-    [Header("Dash")]
-    [SerializeField] private float dashSpeed = 20f;
-    [SerializeField] private float dashDuration = 0.2f;
-    private bool isDashing;
-    private bool canDash;
+    [SerializeField] private float gravity = 40f;
+    [SerializeField] private float maxFallSpeed = 25f;
+    [SerializeField] private float groundAccelerationTime = 0.05f;
+    [SerializeField] private float airAccelerationTime = 0.2f;
 
     [Header("Wall Jump")]
     [SerializeField] private Vector2 wallJumpForce = new Vector2(12f, 16f);
     [SerializeField] private float wallJumpLockTime = 0.2f;
 
+    [Header("Dash")]
+    [SerializeField] private float dashSpeed = 20f;
+    [SerializeField] private float dashTime = 0.2f;
+
     [Header("Ladder")]
-    [SerializeField] private float climbSpeed = 5f;
     [SerializeField] private LayerMask ladderLayer;
+    [SerializeField] private float ladderClimbSpeed = 5f;
 
-    [Header("Collision")]
+    [Header("Ground Check")]
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float skinWidth = 0.05f;
-    [SerializeField] private float groundCheckDistance = 0.1f;
-    [SerializeField] private float wallCheckDistance = 0.3f;
+    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
+    [SerializeField] private Vector2 wallCheckSize = new Vector2(0.1f, 1f);
 
-    [Header("Touch Areas")]
+    [Header("Coyote Time")]
+    [SerializeField] private float coyoteTime = 0.2f;
+
+    [Header("Touch Controls")]
     [SerializeField] private RectTransform leftArea;
     [SerializeField] private RectTransform rightArea;
     [SerializeField] private RectTransform jumpArea;
     [SerializeField] private RectTransform dashArea;
 
-    private BoxCollider2D col;
-    private Vector2 velocity;
-    private bool isGrounded;
-    private bool isTouchingWall;
-    private float coyoteTimeCounter;
-    private bool isFacingRight = true;
-    private bool onLadder;
-    private float horizontalInput;
-    private float verticalInput;
-    private float wallJumpLockCounter;
+    [Header("Camera")]
+    [SerializeField] private GameObject cameraFollowGO;
 
-    private CameraFollowObject cameraFollow;
+    private Vector2 velocity;
+    private Vector2 input;
+    private bool jumpBuffered;
+    private bool dashBuffered;
+    private bool isFacingRight = true;
+    private bool isWallJumping;
+    private bool isDashing;
+    private float wallJumpTimer;
+    private float coyoteTimer;
+    private CameraFollowObject cameraFollowObject;
 
     private void Awake()
     {
-        col = GetComponent<BoxCollider2D>();
-        cameraFollow = FindObjectOfType<CameraFollowObject>();
+        cameraFollowObject = cameraFollowGO.GetComponent<CameraFollowObject>();
     }
 
     private void Update()
     {
-        TouchInput();
-        CheckCollisions();
+        HandleInput();
+        UpdateTimers();
+        ApplyPhysics();
         HandleCamera();
-        ApplyGravity();
-        HandleJump();
-        HandleLadder();
-        HandleDash();
-        Move();
-        HandleFlip();
+        CheckFlip();
     }
 
-    private void TouchInput()
+    private void HandleInput()
     {
 #if UNITY_EDITOR
-        // InputSystem Editor
-        horizontalInput = Keyboard.current.aKey.isPressed ? -1 : Keyboard.current.dKey.isPressed ? 1 : 0;
-        if (Keyboard.current.spaceKey.wasPressedThisFrame) Jump();
-        if (Keyboard.current.leftShiftKey.wasPressedThisFrame) Dash();
-        verticalInput = Keyboard.current.wKey.isPressed ? 1 : Keyboard.current.sKey.isPressed ? -1 : 0;
-#elif UNITY_ANDROID
-        horizontalInput = 0f;
-        verticalInput = 0f;
+        input.x = Keyboard.current.leftArrowKey.isPressed ? -1 : Keyboard.current.rightArrowKey.isPressed ? 1 : 0;
+        if (Keyboard.current.spaceKey.wasPressedThisFrame) jumpBuffered = true;
+        if (Keyboard.current.leftShiftKey.wasPressedThisFrame) dashBuffered = true;
+#else
+        input = Vector2.zero;
         foreach (Touch touch in Input.touches)
         {
             Vector2 pos = touch.position;
-            if (IsInArea(leftArea, pos)) horizontalInput = -1f;
-            if (IsInArea(rightArea, pos)) horizontalInput = 1f;
-            if (IsInArea(jumpArea, pos) && touch.phase == TouchPhase.Began) Jump();
-            if (IsInArea(dashArea, pos) && touch.phase == TouchPhase.Began) Dash();
-            if (IsInArea(jumpArea, pos)) verticalInput = 1f;
+            if (IsWithinUIArea(leftArea, pos)) input.x = -1;
+            if (IsWithinUIArea(rightArea, pos)) input.x = 1;
+            if (IsWithinUIArea(jumpArea, pos) && touch.phase == TouchPhase.Began) jumpBuffered = true;
+            if (IsWithinUIArea(dashArea, pos) && touch.phase == TouchPhase.Began) dashBuffered = true;
         }
 #endif
     }
 
-    private bool IsInArea(RectTransform area, Vector2 screenPos)
+    private void UpdateTimers()
     {
-        return area != null && RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
+        if (IsGrounded()) coyoteTimer = coyoteTime;
+        else coyoteTimer -= Time.deltaTime;
+
+        if (isWallJumping) wallJumpTimer -= Time.deltaTime;
+        if (wallJumpTimer <= 0f) isWallJumping = false;
     }
 
-    private void CheckCollisions()
+    private void ApplyPhysics()
     {
-        Vector2 origin = transform.position;
-        isGrounded = Physics2D.BoxCast(origin, col.size, 0f, Vector2.down, groundCheckDistance, groundLayer);
-        isTouchingWall = Physics2D.Raycast(origin, Vector2.right * (isFacingRight ? 1 : -1), wallCheckDistance, groundLayer);
-        onLadder = Physics2D.OverlapCircle(origin, 0.2f, ladderLayer);
-    }
+        float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
+        velocity.x = Mathf.Lerp(velocity.x, input.x * speed, Time.deltaTime / accelerationTime);
 
-    private void ApplyGravity()
-    {
-        if (onLadder || isDashing) return;
-        if (!isGrounded)
+        if (IsOnLadder())
         {
-            velocity.y += Physics2D.gravity.y * (velocity.y > 0 ? gravityUp : gravityDown) * Time.deltaTime;
-        }
-    }
-
-    private void Move()
-    {
-        if (isDashing || onLadder) return;
-
-        if (wallJumpLockCounter > 0)
-        {
-            wallJumpLockCounter -= Time.deltaTime;
-            return;
-        }
-
-        velocity.x = horizontalInput * moveSpeed;
-        transform.Translate(velocity * Time.deltaTime);
-    }
-
-    private void HandleJump()
-    {
-        if (isGrounded)
-        {
-            coyoteTimeCounter = coyoteTime;
-            canDash = true;
+            velocity.y = input.y * ladderClimbSpeed;
         }
         else
         {
-            coyoteTimeCounter -= Time.deltaTime;
+            if (!isDashing && !isWallJumping)
+            {
+                velocity.y -= gravity * Time.deltaTime;
+                velocity.y = Mathf.Clamp(velocity.y, -maxFallSpeed, float.MaxValue);
+            }
         }
+
+        if (jumpBuffered)
+        {
+            jumpBuffered = false;
+            TryJump();
+        }
+
+        if (dashBuffered)
+        {
+            dashBuffered = false;
+            TryDash();
+        }
+
+        transform.Translate(velocity * Time.deltaTime);
     }
 
-    private void Jump()
+    private void TryJump()
     {
-        if (onLadder)
+        if (IsWallTouching() && !IsGrounded())
         {
-            velocity.y = jumpForce;
-            return;
-        }
-
-        if (isTouchingWall && !isGrounded)
-        {
+            isWallJumping = true;
+            wallJumpTimer = wallJumpLockTime;
             velocity = new Vector2(-GetFacingDirection() * wallJumpForce.x, wallJumpForce.y);
-            wallJumpLockCounter = wallJumpLockTime;
             Flip();
-            return;
         }
-
-        if (coyoteTimeCounter > 0f)
+        else if (coyoteTimer > 0f)
         {
             velocity.y = jumpForce;
-            coyoteTimeCounter = 0;
+            coyoteTimer = 0f;
         }
     }
 
-    private void Dash()
+    private void TryDash()
     {
-        if (!canDash) return;
-        StartCoroutine(PerformDash());
-    }
-
-    private IEnumerator PerformDash()
-    {
-        canDash = false;
-        isDashing = true;
-        float time = 0;
-        velocity = new Vector2(GetFacingDirection() * dashSpeed, 0);
-
-        while (time < dashDuration)
+        if (!isDashing)
         {
-            transform.Translate(velocity * Time.deltaTime);
-            time += Time.deltaTime;
-            yield return null;
+            StartCoroutine(DashRoutine());
         }
+    }
 
+    private IEnumerator DashRoutine()
+    {
+        isDashing = true;
+        float originalGravity = gravity;
+        gravity = 0f;
+        velocity = new Vector2(GetFacingDirection() * dashSpeed, 0f);
+        yield return new WaitForSeconds(dashTime);
+        gravity = originalGravity;
         isDashing = false;
     }
 
-    private void HandleLadder()
+    private void CheckFlip()
     {
-        if (!onLadder) return;
-        velocity.y = verticalInput * climbSpeed;
-        transform.Translate(new Vector2(0, velocity.y * Time.deltaTime));
-    }
-
-    private void HandleFlip()
-    {
-        if (horizontalInput > 0 && !isFacingRight)
+        if (input.x > 0 && !isFacingRight || input.x < 0 && isFacingRight)
+        {
             Flip();
-        else if (horizontalInput < 0 && isFacingRight)
-            Flip();
+        }
     }
 
     private void Flip()
     {
         isFacingRight = !isFacingRight;
-        transform.rotation = Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
-        cameraFollow?.CallTurn();
+        transform.localScale = new Vector3(isFacingRight ? 1 : -1, 1, 1);
+        cameraFollowObject.CallTurn();
     }
 
-    private float GetFacingDirection() => isFacingRight ? 1f : -1f;
+    private int GetFacingDirection() => isFacingRight ? 1 : -1;
+
+    private bool IsGrounded()
+    {
+        return Physics2D.OverlapBox(transform.position - new Vector3(0, 1f), groundCheckSize, 0f, groundLayer);
+    }
+
+    private bool IsWallTouching()
+    {
+        Vector3 offset = new Vector3(GetFacingDirection(), 0);
+        return Physics2D.OverlapBox(transform.position + offset, wallCheckSize, 0f, groundLayer);
+    }
+
+    private bool IsOnLadder()
+    {
+        return Physics2D.OverlapCircle(transform.position, 0.5f, ladderLayer);
+    }
 
     private void HandleCamera()
     {
         var cm = CameraManager.instance;
-        if (velocity.y < cm.fallSpeedDampingChangeThreshold && !cm.isLerpingYDamping && !cm.lerpedFromPlayerFalling)
+        if (velocity.y < CameraManager.instance.fallSpeedDampingChangeThreshold && !cm.isLerpingYDamping && !cm.lerpedFromPlayerFalling)
             cm.LerpYDamping(true);
 
-        if (velocity.y >= 0 && !cm.isLerpingYDamping && cm.lerpedFromPlayerFalling)
+        if (velocity.y >= 0f && !cm.isLerpingYDamping && cm.lerpedFromPlayerFalling)
         {
             cm.lerpedFromPlayerFalling = false;
             cm.LerpYDamping(false);
         }
+    }
+
+    private bool IsWithinUIArea(RectTransform area, Vector2 screenPos)
+    {
+        return area != null && RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(transform.position - new Vector3(0, 1f), groundCheckSize);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(transform.position + new Vector3(GetFacingDirection(), 0), wallCheckSize);
     }
 }
