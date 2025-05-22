@@ -1,326 +1,157 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using System.Collections;
 
+[RequireComponent(typeof(Controller2D))]
 public class Player : MonoBehaviour
 {
-    #region Variables
 
-    #region Movement Variables
+    public float maxJumpHeight = 4;
+    public float minJumpHeight = 1;
+    public float timeToJumpApex = .4f;
+    float accelerationTimeAirborne = .2f;
+    float accelerationTimeGrounded = .1f;
+    float moveSpeed = 6;
 
-    [Header("Movement")]
-    [SerializeField] private float speed;
-    [SerializeField] private float jumpingPower;
-    [SerializeField] private float upwardsGravity;
-    [SerializeField] private float downwardsGravity;
-    [SerializeField] private float groundAccelerationTime;
-    [SerializeField] private float airAccelerationTime;
-    [SerializeField] private float maxFallSpeed;
+    public Vector2 wallJumpClimb;
+    public Vector2 wallJumpOff;
+    public Vector2 wallLeap;
 
-    [Header("Ground Check")]
-    [SerializeField] private float coyoteTime;
-    [SerializeField] private LayerMask collidableLevelLayer;
-    [SerializeField] private Transform groundCheckTransform;
-    [SerializeField] private Vector2 groundCheckSize;
+    public float wallSlideSpeedMax = 3;
+    public float wallStickTime = .25f;
+    float timeToWallUnstick;
 
-    [Header("Wall Jump")]
-    [SerializeField] private float wallSlideMaxFallSpeed;
-    [SerializeField] private Transform wallCheckTransform;
-    [SerializeField] private Vector2 wallJumpPower;
-    [SerializeField] private float wallJumpForcedTime;
-    private bool isWallSliding;
-    private float wallJumpDirectionLockTimer;
-    private float wallJumpLockDirection;
+    float gravity;
+    float maxJumpVelocity;
+    float minJumpVelocity;
+    Vector3 velocity;
+    float velocityXSmoothing;
 
-    [Header("Ladder")]
-    [SerializeField] private float ladderClimbSpeed;
-    [SerializeField] private float ladderFallSpeed;
-    [SerializeField] private LayerMask ladderLayer;
-    
-    [Header("Dash")]
-    [SerializeField] private float dashTime;
-    [SerializeField] private float dashSpeed;
-    [SerializeField] private float dashJumpXVelocityMultiplier;
-    private bool isDashing;
-    private bool canDash;
+    Controller2D controller;
 
-    #endregion
+    Vector2 directionalInput;
+    bool wallSliding;
+    int wallDirX;
 
-    [Header("Touch Areas")]
-    [SerializeField] private RectTransform leftArea;
-    [SerializeField] private RectTransform rightArea;
-    [SerializeField] private RectTransform jumpArea;
-    [SerializeField] private RectTransform dashArea;
-
-    [Header("Camera")]
-    [SerializeField] private GameObject cameraFollowGO;
-    private CameraFollowObject cameraFollowObject;
-    private float fallVelYDampThresh;
-
-    [Header("Misc")]
-    [HideInInspector]public bool isFacingRight;
-    private float horizontalInput;
-    private float currentVelocity;
-    private float timeSinceFallOffGround;
-    private float vertical;
-    private Rigidbody2D rb;
-
-    #endregion
-
-    #region Unity Methods
-
-    private void Awake()
+    void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        cameraFollowObject = cameraFollowGO.GetComponent<CameraFollowObject>();
+        controller = GetComponent<Controller2D>();
+
+        gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);
+        maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
+        minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
     }
 
-    private void Start()
+    void Update()
     {
-        fallVelYDampThresh = CameraManager.instance.fallSpeedDampingChangeThreshold;
-    }
+        CalculateVelocity();
+        HandleWallSliding();
 
-    private void Update()
-    {
-        TouchInput();
-        Movement();
-        CheckTurn();
-        HandleCamera();
-    }
+        controller.Move(velocity * Time.deltaTime, directionalInput);
 
-    #endregion
-
-    #region Input
-
-    private void TouchInput()
-    {
-#if UNITY_EDITOR
-#elif UNITY_ANDROID
-        horizontalInput = 0f;
-        foreach (Touch touch in Input.touches)
-            CheckTouchZones(touch.position, touch.phase);
-#endif
-    }
-
-    private void CheckTouchZones(Vector2 screenPos, UnityEngine.TouchPhase touchPhase = UnityEngine.TouchPhase.Began)
-    {
-        if (IsWithinUIArea(leftArea, screenPos)) horizontalInput = -1f;
-        if (IsWithinUIArea(rightArea, screenPos)) horizontalInput = 1f;
-        
-        if (IsWithinUIArea(jumpArea, screenPos))
+        if (controller.collisions.above || controller.collisions.below)
         {
-            vertical = 1f;
-            if (touchPhase == UnityEngine.TouchPhase.Began) Jump();
-            if (touchPhase == UnityEngine.TouchPhase.Ended) CancelJump();
-        }
-        if (IsWithinUIArea(dashArea, screenPos))
-        {
-            if (touchPhase == UnityEngine.TouchPhase.Began) Dash();
+            if (controller.collisions.slidingDownMaxSlope)
+            {
+                velocity.y += controller.collisions.slopeNormal.y * -gravity * Time.deltaTime;
+            }
+            else
+            {
+                velocity.y = 0;
+            }
         }
     }
 
-    private bool IsWithinUIArea(RectTransform area, Vector2 screenPos)
+    public void SetDirectionalInput(Vector2 input)
     {
-        return area != null && RectTransformUtility.RectangleContainsScreenPoint(area, screenPos);
+        directionalInput = input;
     }
 
-#if UNITY_EDITOR    
-    public void InputMove(InputAction.CallbackContext context)
+    public void OnJumpInputDown()
     {
-        horizontalInput = context.ReadValue<Vector2>().x;
-    }
-
-    public void InputJump(InputAction.CallbackContext context)
-    {
-        if (context.performed) Jump();
-        if (context.canceled) CancelJump();
-    }
-
-    public void InputDash(InputAction.CallbackContext context)
-    {
-        if (context.performed) Dash();
-    }
-#endif
-
-    #endregion
-
-    #region Movement
-
-    private void Movement()
-    {
-        if (wallJumpDirectionLockTimer > 0f)
-            wallJumpDirectionLockTimer -= Time.deltaTime;
-        if (isDashing) return;
-        rb.gravityScale = rb.velocity.y < 0f ? downwardsGravity : upwardsGravity;
-        
-        if (IsGround())
+        if (wallSliding)
         {
-            timeSinceFallOffGround = 0f;
-            canDash = true;
+            if (wallDirX == directionalInput.x)
+            {
+                velocity.x = -wallDirX * wallJumpClimb.x;
+                velocity.y = wallJumpClimb.y;
+            }
+            else if (directionalInput.x == 0)
+            {
+                velocity.x = -wallDirX * wallJumpOff.x;
+                velocity.y = wallJumpOff.y;
+            }
+            else
+            {
+                velocity.x = -wallDirX * wallLeap.x;
+                velocity.y = wallLeap.y;
+            }
         }
-        else
+        if (controller.collisions.below)
         {
-            timeSinceFallOffGround += Time.deltaTime;
-        }
-        
-        float moveInput = wallJumpDirectionLockTimer > 0f ? wallJumpLockDirection : horizontalInput; // Wall Jump Lock
-
-        Ladder();
-        WallSlide();
-        Velocity(moveInput);
-    }
-
-    private void WallSlide()
-    {
-        isWallSliding = !IsGround() && IsWall() && horizontalInput != 0f;
-        if (isWallSliding)
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, wallSlideMaxFallSpeed, float.MaxValue));
-    }
-
-    private void Velocity(float moveInput)
-    {
-        float targetVelocityX = IsWall() && !IsGround() ? 0f : moveInput * speed;
-        float accelerationTime = IsGround() ? groundAccelerationTime : airAccelerationTime;
-
-        float velocityX = Mathf.SmoothDamp(rb.velocity.x, targetVelocityX, ref currentVelocity, accelerationTime);
-        float velocityY = Mathf.Clamp(rb.velocity.y, -maxFallSpeed, maxFallSpeed);
-
-        rb.velocity = new Vector2(velocityX, velocityY);
-    }
-
-    private bool Ladder()
-    {
-        if (wallJumpDirectionLockTimer > 0f) return false;
-        if (!IsLadder()) return false;    
-        rb.gravityScale = 0f;
-
-        float velocityX = rb.velocity.x * 0.9f;
-        float velocityY = vertical == 1f ? ladderClimbSpeed : ladderFallSpeed;
-        rb.velocity = new Vector2(velocityX, velocityY);
-    
-        return true;
-    }
-
-    private void Dash()
-    {
-        if (!canDash) return;
-        StartCoroutine(PerformDash());
-    }
-
-    private IEnumerator PerformDash()
-    {
-        canDash = false;
-        isDashing = true;
-        float originalGravityScale = rb.gravityScale;
-        rb.gravityScale = 0f;
-        rb.velocity = new Vector2(GetDirection() * dashSpeed, 0f);
-        float elapsed = 0f;
-        while (elapsed < dashTime)
-        {
-            elapsed += Time.deltaTime;
-            if (IsWall()) break;
-            yield return null;
-        }
-        rb.gravityScale = originalGravityScale;
-        isDashing = false;
-        rb.velocity = new Vector2(rb.velocity.x * 0.7f, rb.velocity.y);
-    }
-
-    private void Jump()
-    {
-        vertical = 1f;
-
-        if (isWallSliding)
-        {
-            Turn();            
-            rb.velocity = new Vector2(wallJumpPower.x * GetDirection(), wallJumpPower.y);
-
-            // WallJump Lock
-            wallJumpDirectionLockTimer = wallJumpForcedTime;
-            wallJumpLockDirection = GetDirection();
-
-            return;
-        }
-
-        if (isDashing)
-        {
-            rb.velocity = new Vector2(rb.velocity.x * dashJumpXVelocityMultiplier, jumpingPower);
-            return;
-        }
-
-        if (timeSinceFallOffGround > coyoteTime) return;
-
-        rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-        timeSinceFallOffGround = coyoteTime;
-    }
-
-    private void CancelJump()
-    {
-        if (rb.velocity.y > 0f)
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.4f);
-        vertical = 0f;
-    }
-
-    private bool IsWall()
-    {
-        if (IsLadder()) return false;
-        return Physics2D.OverlapCircle(wallCheckTransform.position, 0.2f, collidableLevelLayer);
-    }
-
-    private bool IsGround()
-    {
-        Vector2 scanPosition = new Vector2(transform.position.x, transform.position.y - 1f);
-        return Physics2D.OverlapBox(scanPosition, groundCheckSize, 0f, collidableLevelLayer);
-    }
-
-    private bool IsLadder()
-    {
-        if (IsGround()) return false;
-        return Physics2D.OverlapCircle(transform.position - new Vector3(0f, 1f), 0.6f, ladderLayer);
-    }
-
-    private float GetDirection()
-    {
-        return transform.rotation.y == 0f ? 1f : -1f;
-    }
-
-    #endregion
-
-    #region Orientation
-
-    private void CheckTurn()
-    {
-        if (isDashing) return;
-        if (wallJumpDirectionLockTimer > 0f) return; // Kein Drehen während Zwangsrichtung!
-        if ((!isFacingRight && horizontalInput > 0f) || (isFacingRight && horizontalInput < 0f))
-            Turn();
-    }
-
-    private void Turn()
-    {
-        float newYRotation = isFacingRight ? 180f : 0f;
-        transform.rotation = Quaternion.Euler(0f, newYRotation, 0f);
-        cameraFollowObject.CallTurn();
-        isFacingRight = !isFacingRight;
-    }
-
-    #endregion
-
-    #region Camera
-
-    private void HandleCamera()
-    {
-        var cm = CameraManager.instance;
-
-        if (rb.velocity.y < fallVelYDampThresh && !cm.isLerpingYDamping && !cm.lerpedFromPlayerFalling)
-            cm.LerpYDamping(true);
-
-        if (rb.velocity.y >= 0f && !cm.isLerpingYDamping && cm.lerpedFromPlayerFalling)
-        {
-            cm.lerpedFromPlayerFalling = false;
-            cm.LerpYDamping(false);
+            if (controller.collisions.slidingDownMaxSlope)
+            {
+                if (directionalInput.x != -Mathf.Sign(controller.collisions.slopeNormal.x))
+                { // not jumping against max slope
+                    velocity.y = maxJumpVelocity * controller.collisions.slopeNormal.y;
+                    velocity.x = maxJumpVelocity * controller.collisions.slopeNormal.x;
+                }
+            }
+            else
+            {
+                velocity.y = maxJumpVelocity;
+            }
         }
     }
 
-    #endregion
+    public void OnJumpInputUp()
+    {
+        if (velocity.y > minJumpVelocity)
+        {
+            velocity.y = minJumpVelocity;
+        }
+    }
+
+
+    void HandleWallSliding()
+    {
+        wallDirX = (controller.collisions.left) ? -1 : 1;
+        wallSliding = false;
+        if ((controller.collisions.left || controller.collisions.right) && !controller.collisions.below && velocity.y < 0)
+        {
+            wallSliding = true;
+
+            if (velocity.y < -wallSlideSpeedMax)
+            {
+                velocity.y = -wallSlideSpeedMax;
+            }
+
+            if (timeToWallUnstick > 0)
+            {
+                velocityXSmoothing = 0;
+                velocity.x = 0;
+
+                if (directionalInput.x != wallDirX && directionalInput.x != 0)
+                {
+                    timeToWallUnstick -= Time.deltaTime;
+                }
+                else
+                {
+                    timeToWallUnstick = wallStickTime;
+                }
+            }
+            else
+            {
+                timeToWallUnstick = wallStickTime;
+            }
+
+        }
+
+    }
+
+    void CalculateVelocity()
+    {
+        float targetVelocityX = directionalInput.x * moveSpeed;
+        velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, (controller.collisions.below) ? accelerationTimeGrounded : accelerationTimeAirborne);
+        velocity.y += gravity * Time.deltaTime;
+    }
 }

@@ -1,13 +1,16 @@
-using System.Collections;
+/*using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(PlayerController))]
 public class Player : MonoBehaviour
 {
+    PlayerController controller;
     [Header("Movement")]
     [SerializeField] private float speed;
     [SerializeField] private float jumpForce;
-    [SerializeField] private float gravity;
+    [SerializeField] private float upGravity;
+    [SerializeField] private float downGravity;
     [SerializeField] private float maxFallSpeed;
     [SerializeField] private float groundAccelerationTime;
     [SerializeField] private float airAccelerationTime;
@@ -33,7 +36,7 @@ public class Player : MonoBehaviour
     [SerializeField] private float coyoteTime;
 
     [Header("Touch Controls")]
-    [SerializeField] private Canvas touchUICanvas;
+    [SerializeField] private Canvas canvas;
     [SerializeField] private RectTransform leftArea; private Rect leftRect;
     [SerializeField] private RectTransform rightArea; private Rect rightRect;
     [SerializeField] private RectTransform jumpArea; private Rect jumpRect;
@@ -42,15 +45,17 @@ public class Player : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
 
+    public bool isFacingRight;
+
     private Vector2 velocity;
     private Vector2 input;
     private bool jumpBuffered;
     private bool dashBuffered;
-    private bool isFacingRight;
     private bool isWallJumping;
     private bool isDashing;
     private float wallJumpTimer;
     private float coyoteTimer;
+    private float gravity;
     private CameraFollowObject cameraFollowObject;
 
     private void Awake()
@@ -60,6 +65,11 @@ public class Player : MonoBehaviour
         rightRect = GetScreenRect(rightArea, canvas);
         jumpRect = GetScreenRect(jumpArea, canvas);
         dashRect = GetScreenRect(dashArea, canvas);
+    }
+
+    private void Start()
+    {
+        controller = GetComponent<PlayerController>();
     }
 
     private void Update()
@@ -82,10 +92,10 @@ public class Player : MonoBehaviour
         foreach (Touch touch in Input.touches)
         {
             Vector2 pos = touch.position;
-            if (IsWithinUIArea(leftArea, pos)) input.x = -1;
-            if (IsWithinUIArea(rightArea, pos)) input.x = 1;
-            if (IsWithinUIArea(jumpArea, pos) && touch.phase == TouchPhase.Began) jumpBuffered = true;
-            if (IsWithinUIArea(dashArea, pos) && touch.phase == TouchPhase.Began) dashBuffered = true;
+            if (IsWithinUIArea(leftRect, pos)) input.x = -1;
+            if (IsWithinUIArea(rightRect, pos)) input.x = 1;
+            if (IsWithinUIArea(jumpRect, pos) && touch.phase == UnityEngine.TouchPhase.Began) jumpBuffered = true;
+            if (IsWithinUIArea(dashRect, pos) && touch.phase == UnityEngine.TouchPhase.Began) dashBuffered = true;
         }
 #endif
     }
@@ -101,9 +111,12 @@ public class Player : MonoBehaviour
 
     private void ApplyPhysics()
     {
-        float accelerationTime = IsGrounded() ? groundAccelerationTime : airAccelerationTime;
+        bool isGround = IsGrounded();
+        float accelerationTime = isGround ? groundAccelerationTime : airAccelerationTime;
         velocity.x = Mathf.Lerp(velocity.x, input.x * speed, Time.deltaTime / accelerationTime);
+        if (IsWallTouching()) velocity.x = 0f;
 
+        gravity = velocity.y > 0f ? upGravity : downGravity;
         if (IsOnLadder())
         {
             velocity.y = input.y * ladderClimbSpeed;
@@ -116,6 +129,8 @@ public class Player : MonoBehaviour
                 velocity.y = Mathf.Clamp(velocity.y, -maxFallSpeed, float.MaxValue);
             }
         }
+
+        if (isGround && velocity.y < 0f) velocity.y = 0f;
 
         if (jumpBuffered)
         {
@@ -182,7 +197,10 @@ public class Player : MonoBehaviour
         cameraFollowObject.CallTurn();
     }
 
-    private int GetFacingDirection() => isFacingRight ? 1 : -1;
+    private int GetFacingDirection()
+    {
+        return isFacingRight ? 1 : -1;
+    }
 
     private bool IsGrounded()
     {
@@ -191,7 +209,7 @@ public class Player : MonoBehaviour
 
     private bool IsWallTouching()
     {
-        Vector3 offset = new Vector3(GetFacingDirection(), 0);
+        Vector3 offset = new Vector3(GetFacingDirection() * 0.5f, 0);
         return Physics2D.OverlapBox(transform.position + offset, wallCheckSize, 0f, groundLayer);
     }
 
@@ -228,12 +246,5 @@ public class Player : MonoBehaviour
 
         return new Rect(min, max - min);
     }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(transform.position - new Vector3(0, 1f), groundCheckSize);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(transform.position + new Vector3(GetFacingDirection(), 0), wallCheckSize);
-    }
 }
+*/

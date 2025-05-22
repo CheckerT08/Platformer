@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public static class Math
 {
     public static void CalculateBallisticArc(

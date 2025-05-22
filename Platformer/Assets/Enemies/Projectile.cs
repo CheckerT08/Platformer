@@ -14,7 +14,7 @@ public class Projectile : MonoBehaviour
     {
         targetMask = toHit;
         velocity = vel;
-        graivty = grav;
+        gravity = grav;
         pierce = pier;
         effects = eff;
     }
