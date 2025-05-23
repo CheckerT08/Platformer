@@ -1,9 +1,9 @@
 public class SlimeEnemy : EnemyBase
 {
     [Header("Slime Specific Settings")]
-    public Color slimeColor = Color.green;
-
-    public float bounceSpeed = 1.5f;
+    public Color slimeColor;
+    public float bounceSpeed;
+    
     private float bounceTimer;
 
     protected override void Awake()
