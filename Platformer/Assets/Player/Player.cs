@@ -173,7 +173,7 @@ public class Player : MonoBehaviour
             velocity = new Vector2(-GetDirection() * wallJumpForce.x, wallJumpForce.y);
             Turn();
         }
-        else if (coyoteTimer > 0f || isDashing)
+        else if (coyoteTimer > 0f)
         {
             velocity.y = jumpForce;
             coyoteTimer = 0f;
