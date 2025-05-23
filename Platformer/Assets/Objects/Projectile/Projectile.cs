@@ -1,22 +1,11 @@
-using UnityEngine;
-
 public class Projectile : MonoBehaviour
 {
-    private float lifetime = 5f;
-    private float timeAlive = 0f;
-    private int pierce;
-    private LayerMask targetMask;
-    private Vector2 velocity;
-    private Vector2 gravity;
-    private Effect[] effects;
+    private ProjectileData dat;
+    private float timeAlive;
 
-    public void Init(LayerMask toHit, Vector2 vel, Vector2 grav, int pier, Effect[] eff)
+    public void SetupFromData(ProjectileData data)
     {
-        targetMask = toHit;
-        velocity = vel;
-        gravity = grav;
-        pierce = pier;
-        effects = eff;
+        dat = data;
     }
 
     void Update()
@@ -24,17 +13,16 @@ public class Projectile : MonoBehaviour
         float deltaTime = Time.deltaTime;
         timeAlive += deltaTime;
 
-        if (timeAlive > lifetime)
+        if (timeAlive > dat.lifetime)
         {
+            // Death effect
             Destroy(gameObject);
             return;
         }
 
-        // Apply gravity
         velocity += gravity * deltaTime;
-
-        // Calculate movement
         Vector2 moveDist = velocity * deltaTime;
+
         RaycastHit2D hit = Physics2D.Raycast(transform.position, velocity.normalized, moveDist.magnitude, targetMask);
 
         if (hit.collider != null)
@@ -60,10 +48,5 @@ public class Projectile : MonoBehaviour
         velocity = newDirection;
         targetMask = mask;
         Debug.Log($"Projectile deflected to direction: {velocity}");
-    }
-
-    public void SetGravity(Vector2 newGravity)
-    {
-        gravity = newGravity;
     }
 }
