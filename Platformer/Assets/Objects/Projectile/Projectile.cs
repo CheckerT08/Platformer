@@ -1,11 +1,21 @@
+using UnityEngine;
+using System.Collections.Generic;
+
 public class Projectile : MonoBehaviour
 {
     private ProjectileData dat;
     private float timeAlive;
+    private Vector2 velocity;
+    private int piercesLeft;
+    private LayerMask targetMask;
 
-    public void SetupFromData(ProjectileData data)
+    private HashSet<Collider2D> piercedTargets = new HashSet<Collider2D>();
+    private HashSet<Collider2D> currentFrameHits = new HashSet<Collider2D>();
+
+    public void Setup(ProjectileData data)
     {
         dat = data;
+        piercesLeft = dat.pierce;
     }
 
     void Update()
@@ -15,26 +25,42 @@ public class Projectile : MonoBehaviour
 
         if (timeAlive > dat.lifetime)
         {
-            // Death effect
             Destroy(gameObject);
             return;
         }
 
-        velocity += gravity * deltaTime;
+        velocity += dat.gravity * deltaTime;
         Vector2 moveDist = velocity * deltaTime;
+        transform.position += (Vector3)moveDist;
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, velocity.normalized, moveDist.magnitude, targetMask);
+        // Berechne Kollisionsabfrage an der aktuellen Position
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 0.05f, targetMask);
 
-        if (hit.collider != null)
+        currentFrameHits.Clear();
+
+        foreach (var hit in hits)
         {
-            HandleCollision(hit.collider);
-            if (pierce == 0)
-                Destroy(gameObject);
-            else
-                pierce--;
+            currentFrameHits.Add(hit);
+
+            if (!piercedTargets.Contains(hit))
+            {
+                piercedTargets.Add(hit);
+                HandleCollision(hit);
+
+                if (piercesLeft == 0)
+                {
+                    Destroy(gameObject);
+                    return;
+                }
+                else
+                {
+                    piercesLeft--;
+                }
+            }
         }
 
-        transform.position += (Vector3)moveDist;
+        // Entferne verlassene Collider
+        piercedTargets.RemoveWhere(col => !currentFrameHits.Contains(col));
     }
 
     void HandleCollision(Collider2D collider)

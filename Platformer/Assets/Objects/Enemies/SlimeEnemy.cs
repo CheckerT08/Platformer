@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class SlimeEnemy : EnemyBase
 {
     [Header("Slime Specific Settings")]

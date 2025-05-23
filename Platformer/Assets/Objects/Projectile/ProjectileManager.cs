@@ -15,7 +15,7 @@ public static class ProjectileManager
 
         if (projectile != null)
         {
-            projectile.SetupFromData(data);
+            projectile.Setup(data);
         }
         else
         {
