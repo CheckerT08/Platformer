@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+// was macht jumpBuffered?
 [RequireComponent(typeof(Controller2D))]
 public class Player : MonoBehaviour
 {
@@ -166,7 +166,7 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (IsWall() && coyoteTimer < 0f)
+        if (IsWall() && coyoteTimer < 0f && input.x != 0f)
         {
             isWallJumping = true;
             wallJumpTimer = wallJumpLockTime;
