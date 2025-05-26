@@ -15,22 +15,17 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
-        Vector2 directionalInput = Vector2.zero;
+        float input = 0;
 
 #if UNITY_EDITOR || UNITY_STANDALONE
 
         // Tastatur
         if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
-            directionalInput.x = -1;
+            input = -1;
         else if (Keyboard.current.rightArrowKey.isPressed || Keyboard.current.dKey.isPressed)
-            directionalInput.x = 1;
+            input = 1;
 
-        if (Keyboard.current.downArrowKey.isPressed || Keyboard.current.sKey.isPressed)
-            directionalInput.y = -1;
-        else if (Keyboard.current.upArrowKey.isPressed || Keyboard.current.wKey.isPressed)
-            directionalInput.y = 1;
-
-        player.SetDirectionalInput(directionalInput);
+        player.SetDirectionalInput(input);
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
@@ -49,13 +44,12 @@ public class PlayerInput : MonoBehaviour
             Vector2 pos = touch.position;
 
             if (player.leftRect.Contains(pos))
-                directionalInput.x = -1f;
+                input = -1f;
             if (player.rightRect.Contains(pos))
-                directionalInput.x = 1f;
+                input = 1f;
 
             if (player.jumpRect.Contains(pos))
             {
-                directionalInput.y = 1f;
                 if (touch.phase == TouchPhase.Began) player.OnJumpInputDown();
             }
 
@@ -65,7 +59,7 @@ public class PlayerInput : MonoBehaviour
             }
         }
 
-        player.SetDirectionalInput(directionalInput);
+        player.SetDirectionalInput(input);
 
 #endif
     }

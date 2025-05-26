@@ -5,7 +5,6 @@ using System.Linq;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [SerializeField] private Player player;
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private Attack[] attacks;
 

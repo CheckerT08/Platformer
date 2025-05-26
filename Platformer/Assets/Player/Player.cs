@@ -1,11 +1,11 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-// was macht jumpBuffered?
-[RequireComponent(typeof(Controller2D))]
+[RequireComponent(typeof(PlayerController))]
 public class Player : MonoBehaviour
 {
-    Controller2D controller;
+    #region Variables
+    PlayerController controller;
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 6;
@@ -41,9 +41,9 @@ public class Player : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
 
-    private Vector3 velocity;
+    private Vector2 velocity;
     private float velocityXSmoothing;
-    private Vector2 input;
+    private float input;
     private bool jumpBuffered;
     private bool isWallJumping;
     private float wallJumpTimer;
@@ -55,14 +55,14 @@ public class Player : MonoBehaviour
     private bool isClimbingLadder;
     public bool isFacingRight = true;
     [HideInInspector] public Rect leftRect, rightRect, jumpRect, dashRect;
-
+    #endregion
 
     void Start()
     {
-        controller = GetComponent<Controller2D>();
+        controller = GetComponent<PlayerController>();
         cameraFollowObject = cameraFollowGO.GetComponent<CameraFollowObject>();
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID // Touch Rects
         var canvas = leftArea?.GetComponentInParent<Canvas>();
         if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceCamera)
         {
@@ -74,40 +74,74 @@ public class Player : MonoBehaviour
 #endif
     }
 
-    private Rect GetScreenRect(RectTransform rectTransform)
-    {
-        Vector3[] corners = new Vector3[4];
-        rectTransform.GetWorldCorners(corners);
-        return new Rect(corners[0], corners[2] - corners[0]);
-    }
-
+    #region Core Loop
     void Update()
     {
         UpdateTimers();
+        HandleInput();
         HandleLadderClimb();
         CalculateVelocity();
         HandleWallSliding();
         CheckTurn();
-
-        controller.Move(velocity * Time.deltaTime, input);
-
-        if (controller.collisions.above || controller.collisions.below)
-        {
-            if (controller.collisions.slidingDownMaxSlope)
-            {
-                velocity.y += controller.collisions.slopeNormal.y * -gravity * Time.deltaTime;
-            }
-            else
-            {
-                velocity.y = 0;
-                canDash = true;
-            }
-        }
-
+        Move();
         HandleCamera();
     }
+    #endregion
 
-    public void SetDirectionalInput(Vector2 newInput)
+    #region Movement
+    void Move()
+    {
+        controller.Move(velocity * Time.deltaTime, input);
+
+        if (controller.collisions.above || IsGround())
+        {
+            OnGround();
+            velocity.y = 0;
+            canDash = true;
+        }
+    }
+
+    void CalculateVelocity()
+    {
+        if (isDashing) return;
+        if (isWallJumping) input = GetDirection();
+
+        float accelTime = IsGround() ? groundAccelerationTime : airAccelerationTime;
+        float targetVelocityX = input * moveSpeed;
+        velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, accelTime);
+
+        if (isClimbingLadder)
+        {
+            gravity = 0f;
+            return;
+        }
+
+        gravity = velocity.y > 0f ? upGravity : downGravity;
+        velocity.y -= gravity * Time.deltaTime;
+        velocity.y = Mathf.Clamp(velocity.y, -maxFallSpeed, float.MaxValue);
+    }
+
+    void OnGround()
+    {
+        if (velocity.y < 0f)
+        {
+            velocity.y = 0f;
+        }
+    }
+    #endregion
+
+    #region Input Handling
+    void HandleInput()
+    {
+#if UNITY_EDITOR || UNITY_STANDALONE
+        if (Keyboard.current.spaceKey.isPressed || jumpBuffered)
+        {
+            OnJumpInputDown();
+        }
+#endif
+    }
+
+    public void SetDirectionalInput(float newInput)
     {
         input = newInput;
     }
@@ -117,6 +151,65 @@ public class Player : MonoBehaviour
         jumpBuffered = true;
     }
 
+    private Rect GetScreenRect(RectTransform rectTransform)
+    {
+        Vector3[] corners = new Vector3[4];
+        rectTransform.GetWorldCorners(corners);
+        return new Rect(corners[0], corners[2] - corners[0]);
+    }
+    #endregion
+
+    #region Jumping
+    void UpdateTimers()
+    {
+        coyoteTimer = IsGround() ? coyoteTime : coyoteTimer - Time.deltaTime;
+
+        if (isWallJumping) wallJumpTimer -= Time.deltaTime;
+        if (wallJumpTimer <= 0f) isWallJumping = false;
+
+        if (jumpBuffered)
+        {
+            jumpBuffered = false;
+            TryJump();
+        }
+    }
+
+    void TryJump()
+    {
+        if (IsWall() && coyoteTimer < 0f && input != 0f)
+        {
+            isWallJumping = true;
+            wallJumpTimer = wallJumpLockTime;
+            velocity = new Vector2(-GetDirection() * wallJumpForce.x, wallJumpForce.y);
+            Turn();
+        }
+        else if (coyoteTimer > 0f)
+        {
+            velocity.y = jumpForce;
+            coyoteTimer = 0f;
+        }        
+        
+        if (IsLadder())
+        {
+            isClimbingLadder = true;
+            return;
+        }
+
+    }
+    #endregion
+
+    #region Wall Sliding
+    void HandleWallSliding()
+    {
+        if (IsWall() && velocity.y < 0 && input != 0)
+        {
+            if (velocity.y < -maxWallSlideSpeed)
+                velocity.y = -maxWallSlideSpeed;
+        }
+    }
+    #endregion
+
+    #region Dashing
     public void Dash()
     {
         if (!canDash || isDashing) return;
@@ -143,43 +236,9 @@ public class Player : MonoBehaviour
         isDashing = false;
         velocity = new Vector2(velocity.x * 0.7f, velocity.y);
     }
+    #endregion
 
-    void UpdateTimers()
-    {
-        coyoteTimer = controller.collisions.below ? coyoteTime : coyoteTimer - Time.deltaTime;
-
-        if (isWallJumping) wallJumpTimer -= Time.deltaTime;
-        if (wallJumpTimer <= 0f) isWallJumping = false;
-
-        if (jumpBuffered)
-        {
-            jumpBuffered = false;
-            TryJump();
-        }
-    }
-
-    void TryJump()
-    {
-        if (IsLadder())
-        {
-            isClimbingLadder = true;
-            return;
-        }
-
-        if (IsWall() && coyoteTimer < 0f && input.x != 0f)
-        {
-            isWallJumping = true;
-            wallJumpTimer = wallJumpLockTime;
-            velocity = new Vector2(-GetDirection() * wallJumpForce.x, wallJumpForce.y);
-            Turn();
-        }
-        else if (coyoteTimer > 0f)
-        {
-            velocity.y = jumpForce;
-            coyoteTimer = 0f;
-        }
-    }
-
+    #region Ladder
     void HandleLadderClimb()
     {
         if (!IsLadder())
@@ -193,48 +252,14 @@ public class Player : MonoBehaviour
             isClimbingLadder = true;
             velocity.y = ladderClimbSpeed;
         }
-        else if (isClimbingLadder)
+        else
         {
-            velocity.y = 0f;
+            velocity.y = -ladderClimbSpeed;
         }
     }
+    #endregion
 
-    void CalculateVelocity()
-    {
-        if (isDashing) return;
-        if (isWallJumping) input.x = GetDirection();
-
-        float accelTime = controller.collisions.below ? groundAccelerationTime : airAccelerationTime;
-        float targetVelocityX = input.x * moveSpeed;
-        velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, accelTime);
-
-        if (isClimbingLadder)
-        {
-            gravity = 0f;
-            return;
-        }
-
-        gravity = velocity.y > 0f ? upGravity : downGravity;
-        velocity.y -= gravity * Time.deltaTime;
-        velocity.y = Mathf.Clamp(velocity.y, -maxFallSpeed, float.MaxValue);
-
-        if (controller.collisions.below && velocity.y < 0f)
-        {
-            velocity.y = 0f;
-        }
-    }
-
-    void HandleWallSliding()
-    {
-        if ((controller.collisions.left || controller.collisions.right) &&
-            !controller.collisions.below && velocity.y < 0 && input.x != 0)
-        {
-
-            if (velocity.y < -maxWallSlideSpeed)
-                velocity.y = -maxWallSlideSpeed;
-        }
-    }
-
+    #region Camera
     void HandleCamera()
     {
         var cm = CameraManager.instance;
@@ -248,12 +273,14 @@ public class Player : MonoBehaviour
             cm.LerpYDamping(false);
         }
     }
+    #endregion
 
+    #region Direction
     void CheckTurn()
     {
         if (isDashing || wallJumpTimer > 0f) return;
 
-        if ((!isFacingRight && input.x > 0f) || (isFacingRight && input.x < 0f))
+        if ((!isFacingRight && input > 0f) || (isFacingRight && input < 0f))
             Turn();
     }
 
@@ -266,7 +293,9 @@ public class Player : MonoBehaviour
 
         cameraFollowObject.CallTurn();
     }
+    #endregion
 
+    #region Utilities
     int GetDirection()
     {
         return isFacingRight ? 1 : -1;
@@ -274,11 +303,17 @@ public class Player : MonoBehaviour
 
     bool IsWall()
     {
-        return (controller.collisions.left || controller.collisions.right) && !controller.collisions.below;
+        return (controller.collisions.left || controller.collisions.right) && !IsGround();
     }
 
     bool IsLadder()
     {
         return Physics2D.OverlapCircle(transform.position, 0.5f, ladderLayer);
     }
+
+    bool IsGround()
+    {
+        return controller.collisions.below;
+    }
+    #endregion
 }
