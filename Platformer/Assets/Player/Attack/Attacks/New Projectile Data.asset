@@ -9,15 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ef2054671a593948b1c119c87088cde, type: 3}
-  m_Name: Sword
+  m_Script: {fileID: 11500000, guid: 90f8d795acc47b04e9bb9a77db2abeb7, type: 3}
+  m_Name: New Projectile Data
   m_EditorClassIdentifier: 
-  attackName: Sword
-  playerCooldown: 0
-  castTime: 0.1
-  damage: 1
+  projectilePrefab: {fileID: 0}
+  lifetime: 0
+  pierce: 0
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 0
+  initialVelocity: {x: 0, y: 0}
+  gravity: {x: 0, y: 0}
   effects: []
-  hitInterval: 0
-  hitRepeatAmount: 1345678
-  offset: {x: 0, y: 0}
-  range: {x: 0, y: 0}
