@@ -50,7 +50,7 @@ public class PlayerInput : MonoBehaviour
 
             if (player.jumpRect.Contains(pos))
             {
-                if (touch.phase == TouchPhase.Began) player.OnJumpInputDown();
+                player.OnJumpInputDown();
             }
 
             if (player.dashRect.Contains(pos))
