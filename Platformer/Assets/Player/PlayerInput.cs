@@ -1,5 +1,5 @@
 using UnityEngine;
-#if UNITY_EDITOR 
+#if UNITY_EDITOR
 using UnityEngine.InputSystem;
 #endif
 
@@ -15,30 +15,21 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
-        float input = 0;
+        float input = 0f;
+        bool jumpHeld = false;
 
 #if UNITY_EDITOR || UNITY_STANDALONE
-
-        // Tastatur
         if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
-            input = -1;
+            input = -1f;
         else if (Keyboard.current.rightArrowKey.isPressed || Keyboard.current.dKey.isPressed)
-            input = 1;
-
-        player.SetDirectionalInput(input);
+            input = 1f;
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
             player.OnJumpInputDown();
-        }
 
-        if (Keyboard.current.fKey.wasPressedThisFrame)
-        {
-            player.Dash();
-        }
+        jumpHeld = Keyboard.current.spaceKey.isPressed;
 
 #elif UNITY_ANDROID
-
         foreach (Touch touch in Input.touches)
         {
             Vector2 pos = touch.position;
@@ -50,17 +41,18 @@ public class PlayerInput : MonoBehaviour
 
             if (player.jumpRect.Contains(pos))
             {
-                player.OnJumpInputDown();
+                jumpHeld = true;
+                if (touch.phase == TouchPhase.Began)
+                    player.OnJumpInputDown();
             }
 
-            if (player.dashRect.Contains(pos))
+            if (player.dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
             {
-                if (touch.phase == TouchPhase.Began) player.Dash();
+                player.Dash();
             }
         }
-
-        player.SetDirectionalInput(input);
-
 #endif
+        player.SetDirectionalInput(input);
+        player.SetJumpHeld(jumpHeld);
     }
 }
