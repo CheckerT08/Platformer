@@ -67,6 +67,8 @@ public class Projectile : MonoBehaviour
     {
         Debug.Log($"Hit: {collider.name}");
         // TODO: Damage enemy and apply effects
+        // if (targetLayer == enemy) collider.GetComponent<EnemyBase>().TakeDamage(dat.damage);
+        // if (targetLayer == player) collider.GetComponent<PlayerHealth>().TakeDamage(dat.damage);
     }
 
     public void Deflect(Vector2 newDirection, LayerMask mask)
