@@ -2,20 +2,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Attacks/MeleeAttack")]
 public class MeleeAttack : Attack
 {
     public float hitInterval;
-    public float hitRepeatAmount;
+    public int hitRepeatAmount;
     public Vector2 offset;
     public Vector2 range;
 
     public override IEnumerator Execute(Transform attacker, LayerMask targetLayer)
     {
-        Debug.Log("Melee " + hitRepeatAmount);
-        yield return null;
+        yield break;
+    }
+}
 
-        /*
+[CreateAssetMenu(menuName = "Attacks/Melee/Sword")]
+public class SwordAttack : RangedAttack
+{
+    public override IEnumerator Execute(Transform attacker, LayerMask targetLayer)
+    {
+        yield return null;
+    }
+}
+
+[CreateAssetMenu(menuName = "Attacks/Melee/Axe")]
+public class AxeAttack : RangedAttack
+{
+    public override IEnumerator Execute(Transform attacker, LayerMask targetLayer)
+    {
+        yield return null;
+    }
+}
+
+
+/*
         for (int i = 0; i < hitRepeatAmount; i++)
         {
             Vector2 hitPosition = (Vector2)attacker.position + offset;
@@ -37,6 +56,3 @@ public class MeleeAttack : Attack
                 yield return new WaitForSeconds(hitInterval);
         }
         */
-
-    }
-}
