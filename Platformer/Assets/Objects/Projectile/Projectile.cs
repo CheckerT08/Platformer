@@ -8,14 +8,21 @@ public class Projectile : MonoBehaviour
     private Vector2 velocity;
     private int piercesLeft;
     private LayerMask targetMask;
+    private float dir;
 
-    private HashSet<Collider2D> piercedTargets = new HashSet<Collider2D>();
-    private HashSet<Collider2D> currentFrameHits = new HashSet<Collider2D>();
-
-    public void Setup(ProjectileData data)
+    public void Setup(ProjectileData data, float direction)
     {
         dat = data;
         piercesLeft = dat.pierce;
+        dir = direction;        
+        velocity = new Vector2(dat.initialVelocity.x * dir, dat.initialVelocity.y);
+
+    }
+
+    private void Awake()
+    {
+        Debug.Log("dat: " + dat);
+        Debug.Log("Dir: " + dir);
     }
 
     void Update()
@@ -32,40 +39,19 @@ public class Projectile : MonoBehaviour
         velocity += dat.gravity * deltaTime;
         Vector2 moveDist = velocity * deltaTime;
         transform.position += (Vector3)moveDist;
+    }
 
-        // Berechne Kollisionsabfrage an der aktuellen Position
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 0.05f, targetMask);
-
-        currentFrameHits.Clear();
-
-        foreach (var hit in hits)
-        {
-            currentFrameHits.Add(hit);
-
-            if (!piercedTargets.Contains(hit))
-            {
-                piercedTargets.Add(hit);
-                HandleCollision(hit);
-
-                if (piercesLeft == 0)
-                {
-                    Destroy(gameObject);
-                    return;
-                }
-                else
-                {
-                    piercesLeft--;
-                }
-            }
-        }
-
-        // Entferne verlassene Collider
-        piercedTargets.RemoveWhere(col => !currentFrameHits.Contains(col));
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        //if (LayerMaskContainsLayer(targetMask, collision.gameObject.layer))
+            //return;
+        HandleCollision(collision);
     }
 
     void HandleCollision(Collider2D collider)
     {
         Debug.Log($"Hit: {collider.name}");
+        //Destroy(gameObject);
         // TODO: Damage enemy and apply effects
         // if (targetLayer == enemy) collider.GetComponent<EnemyBase>().TakeDamage(dat.damage);
         // if (targetLayer == player) collider.GetComponent<PlayerHealth>().TakeDamage(dat.damage);
@@ -76,5 +62,10 @@ public class Projectile : MonoBehaviour
         velocity = newDirection;
         targetMask = mask;
         Debug.Log($"Projectile deflected to direction: {velocity}");
+    }
+
+    public static bool LayerMaskContainsLayer(LayerMask mask, int layer)
+    {
+        return (mask.value & (1 << layer)) != 0;
     }
 }

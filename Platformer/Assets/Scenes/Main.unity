@@ -34599,6 +34599,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1938481578}
   - {fileID: 1317334455}
   m_Father: {fileID: 678929836}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -34621,7 +34622,7 @@ MonoBehaviour:
   maxFallSpeed: 12
   groundAccelerationTime: 0.1
   airAccelerationTime: 0.2
-  wallJumpForce: {x: 8, y: 12}
+  wallJumpForce: {x: 8, y: 10}
   wallJumpLockTime: 0.3
   maxWallSlideSpeed: 2
   dashSpeed: 20
@@ -34631,6 +34632,7 @@ MonoBehaviour:
     m_Bits: 128
   ladderClimbSpeed: 5
   coyoteTime: 0.15
+  jumpBufferTime: 0.2
   leftArea: {fileID: 978109071}
   rightArea: {fileID: 355720338}
   jumpArea: {fileID: 848439731}
@@ -34739,6 +34741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e85b9ad2b8548f0469017fcad4d51671, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 1443382958}
 --- !u!50 &1443382962
 Rigidbody2D:
   serializedVersion: 4
@@ -35289,6 +35292,58 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &1938481577
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1938481578}
+  - component: {fileID: 1938481579}
+  m_Layer: 3
+  m_Name: ATTACK
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1938481578
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1938481577}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1443382957}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1938481579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1938481577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ec8cab366a30af439b5670a62e35acb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 2048
+  attacks:
+  - {fileID: 11400000, guid: 8c6af84aae16fe14b98c5402ff4095e5, type: 2}
+  - {fileID: 11400000, guid: 99fc848cdc28a8547aefd91671485958, type: 2}
+  - {fileID: 11400000, guid: 0d23d7f0fc19b714f966fa2fe04ab991, type: 2}
+  - {fileID: 11400000, guid: a139c08a899072f4ea1746ee8c4f21ec, type: 2}
 --- !u!1 &2092418465
 GameObject:
   m_ObjectHideFlags: 0

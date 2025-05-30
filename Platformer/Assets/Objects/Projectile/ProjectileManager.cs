@@ -2,7 +2,7 @@ using UnityEngine;
 
 public static class ProjectileManager
 {
-    public static void Spawn(ProjectileData data, Vector2 position, Quaternion rotation)
+    public static void Spawn(ProjectileData data, Vector2 position, Quaternion rotation, float direction)
     {
         if (data.projectilePrefab == null)
         {
@@ -11,15 +11,7 @@ public static class ProjectileManager
         }
 
         GameObject instance = GameObject.Instantiate(data.projectilePrefab, position, rotation);
-        Projectile projectile = instance.GetComponent<Projectile>();
-
-        if (projectile != null)
-        {
-            projectile.Setup(data);
-        }
-        else
-        {
-            Debug.LogError("Projectile prefab does not contain a Projectile component!");
-        }
+        if (instance.TryGetComponent(out Projectile projectile))
+            projectile.Setup(data, direction);
     }
 }
