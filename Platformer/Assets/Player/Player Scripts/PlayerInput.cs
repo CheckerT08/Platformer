@@ -25,7 +25,22 @@ public class PlayerInputHandler : MonoBehaviour
         jumpPressed = false;
         dashPressed = false;
 
-#if UNITY_ANDROID
+#if UNITY_EDITOR
+        // PC Input: Keyboard & Mouse
+        var keyboard = Keyboard.current;
+        if (keyboard == null) return; // kein Keyboard gefunden
+
+        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
+            input = -1f;
+        else if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
+            input = 1f;
+
+        jumpHeld = keyboard.spaceKey.isPressed;
+        jumpPressed = keyboard.spaceKey.wasPressedThisFrame;
+
+        // Beispiel Dash mit Shift oder Maus links
+        dashPressed = keyboard.leftShiftKey.wasPressedThisFrame;
+#else
         foreach (Touch touch in Touch.activeTouches)
         {
             Vector2 pos = touch.screenPosition;
@@ -46,21 +61,6 @@ public class PlayerInputHandler : MonoBehaviour
             if (player.dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
                 dashPressed = true;
         }
-#else
-        // PC Input: Keyboard & Mouse
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return; // kein Keyboard gefunden
-
-        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
-            input = -1f;
-        else if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
-            input = 1f;
-
-        jumpHeld = keyboard.spaceKey.isPressed;
-        jumpPressed = keyboard.spaceKey.wasPressedThisFrame;
-
-        // Beispiel Dash mit Shift oder Maus links
-        dashPressed = keyboard.leftShiftKey.wasPressedThisFrame;
 #endif
 
         if (jumpPressed)

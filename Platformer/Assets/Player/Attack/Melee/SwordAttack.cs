@@ -6,6 +6,7 @@ public class SwordAttack : MeleeAttack
 {
     public override IEnumerator Execute(Transform attacker, LayerMask targetLayer)
     {
+        Debug.Log("Sword Attack");
         yield return null;
     }
 }

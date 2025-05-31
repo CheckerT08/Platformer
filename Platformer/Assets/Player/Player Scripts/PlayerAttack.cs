@@ -21,22 +21,18 @@ public class PlayerAttack : MonoBehaviour
         if (keyboard == null) return;
 
         if (keyboard.zKey.wasPressedThisFrame)
-            TryAttack("Bow");
-
+            TryAttack(attacks[0]);
         if (keyboard.xKey.wasPressedThisFrame)
-            TryAttack("Fireball");
-
-        if (keyboard.bKey.wasPressedThisFrame)
-            TryAttack("Sword");
+            TryAttack(attacks[1]);
+        if (keyboard.cKey.wasPressedThisFrame)
+            TryAttack(attacks[2]);
+        if (keyboard.vKey.wasPressedThisFrame)
+            TryAttack(attacks[3]);
     }
 
-    public void TryAttack(string attackName)
+    public void TryAttack(AttackBase attack)
     {
-        Debug.Log("Try Att " + attackName);
         if (isAttacking || globalCooldownTimer > 0f) return;
-        AttackBase attack = attacks.FirstOrDefault(a => a.attackName == attackName);
-        if (attack == null) return;
-        Debug.Log("Attack is not null");
         StartCoroutine(HandleAttack(attack));
     }
 
@@ -47,7 +43,7 @@ public class PlayerAttack : MonoBehaviour
         if (attack.castTime > 0f)
             yield return new WaitForSeconds(attack.castTime);
 
-        yield return StartCoroutine(attack.Execute(transform, enemyLayer));
+        yield return StartCoroutine(attack.Execute(transform.parent, enemyLayer));
 
         globalCooldownTimer = attack.playerCooldown;
         isAttacking = false;
