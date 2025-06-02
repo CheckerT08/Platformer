@@ -33,7 +33,7 @@ public class Effect
         // Vorhandene Komponente entfernen, falls vorhanden
         var existing = targetGameObject.GetComponent(componentType);
         if (existing != null)
-            Object.Destroy(existing);
+            UnityEngine.Object.Destroy(existing);
     
         // Neue Komponente hinzufügen
         var component = targetGameObject.AddComponent(componentType);
@@ -68,7 +68,7 @@ public abstract class BaseEffect : MonoBehaviour
         Destroy(this);
     }
 
-    virtual void OnEffectEnd()
+    public virtual void OnEffectEnd()
     {
         
     }
@@ -78,7 +78,7 @@ public abstract class BaseEffect : MonoBehaviour
 
 public class FireEffect : BaseEffect
 {
-    override void OnEffectEnd()
+    public override void OnEffectEnd()
     {
         Debug.Log("FireEffect ended!");
     }
