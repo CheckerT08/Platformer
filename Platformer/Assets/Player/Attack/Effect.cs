@@ -29,13 +29,18 @@ public class Effect
     public void ApplyTo(GameObject targetGameObject)
     {
         if (!effectComponentMap.TryGetValue(effect, out Type componentType)) return;
-        if (targetGameObject.GetComponent(componentType) != null) return;
-
+    
+        // Vorhandene Komponente entfernen, falls vorhanden
+        var existing = targetGameObject.GetComponent(componentType);
+        if (existing != null)
+            Object.Destroy(existing);
+    
+        // Neue Komponente hinzufügen
         var component = targetGameObject.AddComponent(componentType);
-        if (component is BaseEffect baseEffect)
-        {
+    
+        // Falls es eine BaseEffect ist, initialisieren
+        if (component is BaseEffect baseEffect) // Wenn component von BaseEffect erbt
             baseEffect.Init(duration);
-        }
     }
 }
 
@@ -46,7 +51,6 @@ public enum EffectEnum
     Weakness, Strength, AttackWeakness, AttackStrength
 }
 
-// ─────────── Gemeinsame Effekt-Basisklasse ───────────
 public abstract class BaseEffect : MonoBehaviour
 {
     protected float duration;
@@ -64,9 +68,9 @@ public abstract class BaseEffect : MonoBehaviour
         Destroy(this);
     }
 
-    protected virtual void OnEffectEnd()
+    virtual void OnEffectEnd()
     {
-        // Optional: Cleanup, Animation stoppen, etc.
+        
     }
 }
 
@@ -74,7 +78,7 @@ public abstract class BaseEffect : MonoBehaviour
 
 public class FireEffect : BaseEffect
 {
-    protected override void OnEffectEnd()
+    override void OnEffectEnd()
     {
         Debug.Log("FireEffect ended!");
     }
