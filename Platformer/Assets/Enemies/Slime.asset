@@ -9,10 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec53f1a5127ada946816e2b0c4df6668, type: 3}
-  m_Name: Bow
+  m_Script: {fileID: 11500000, guid: 511845530eb677546b812d410923cd01, type: 3}
+  m_Name: Slime
   m_EditorClassIdentifier: 
-  attackName: Bow
-  playerCooldown: 0
-  castTime: 1
-  projectile: {fileID: 11400000, guid: 6ac8ab78ba5575d43916d2e594d0c15f, type: 2}
+  damage: 10
+  invincible: 0

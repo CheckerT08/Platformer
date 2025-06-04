@@ -78,9 +78,12 @@ public abstract class BaseEffect : MonoBehaviour
 
 public class FireEffect : BaseEffect
 {
+    private void Start()
+    {
+    }
+
     public override void OnEffectEnd()
     {
-        Debug.Log("FireEffect ended!");
     }
 }
 

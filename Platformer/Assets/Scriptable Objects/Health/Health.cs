@@ -6,10 +6,12 @@ public class Health : MonoBehaviour
     private float currentHealth;
     private float timeSinceDamageTaken;
     private float regenCycleCooldown;
+    private bool canRegen;
 
     public virtual void Start()
     {
         currentHealth = data.maxHealth;
+        canRegen = data.canRegenerate;
     }
 
     // Methode zum Schaden nehmen
@@ -17,7 +19,6 @@ public class Health : MonoBehaviour
     {
         timeSinceDamageTaken = 0f;
         currentHealth -= damageAmount;
-        Debug.Log("Took " + damageAmount + " damage. Current health: " + currentHealth);
 
         if (currentHealth <= 0)
         {
@@ -34,18 +35,21 @@ public class Health : MonoBehaviour
     private void Update()
     {
         timeSinceDamageTaken += Time.deltaTime;
-        regenCycleCooldown -= Time.deltaTime;
-
-        if (timeSinceDamageTaken > data.regenCooldown && regenCycleCooldown < 0f)
+        if (canRegen)
         {
-            regenCycleCooldown = 1f;
-            Heal(data.regenAmount);
+            regenCycleCooldown -= Time.deltaTime;
+
+            if (timeSinceDamageTaken > data.regenCooldown && regenCycleCooldown < 0f)
+            {
+                regenCycleCooldown = 1f;
+                Heal(data.regenAmount);
+            }
         }
     }
 
     // Methode für den Tod des Spielers
     public virtual void Die()
     {
-        Debug.Log("Player died.");
+        Debug.Log("Died.");
     }
 }

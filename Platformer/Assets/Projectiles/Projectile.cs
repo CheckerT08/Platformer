@@ -45,18 +45,20 @@ public class Projectile : MonoBehaviour
     {
         if (timeAlive < 0.1) return;
         if (!LayerMaskContainsLayer(targetMask, collision.gameObject.layer)) return;
-        //if (LayerMaskContainsLayer(targetMask, collision.gameObject.layer))
-        //return;
         HandleCollision(collision);
     }
 
     void HandleCollision(Collider2D collider)
     {
-        Debug.Log($"Hit: {collider.name}");
-        //Destroy(gameObject);
-        // TODO: Damage enemy and apply effects
-        // if (targetLayer == enemy) collider.GetComponent<EnemyBase>().TakeDamage(dat.damage);
-        // if (targetLayer == player) collider.GetComponent<PlayerHealth>().TakeDamage(dat.damage);
+        piercesLeft--;
+        if (piercesLeft < 1)
+            Destroy(gameObject);
+
+        if (collider.TryGetComponent(out Health health))
+            health.TakeDamage(dat.damage);
+
+        foreach (Effect effect in dat.effects)
+            effect.ApplyTo(collider.gameObject);
     }
 
     public void Deflect(Vector2 newVelocity, LayerMask mask)

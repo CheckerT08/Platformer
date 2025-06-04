@@ -46,6 +46,7 @@ public class PlayerAttack : MonoBehaviour
         yield return StartCoroutine(attack.Execute(transform.parent, enemyLayer));
 
         globalCooldownTimer = attack.playerCooldown;
+        yield return new WaitForSeconds(attack.playerCooldown);
         isAttacking = false;
     }
 }
