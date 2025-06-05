@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 public class EnemyBase : Health
@@ -7,6 +7,13 @@ public class EnemyBase : Health
     public EnemyStats enemyStats;
 
     public float tickInterval = 0.2f;
+
+    protected float speed => enemyStats.speed;
+    protected float wallCheckDistance => enemyStats.wallCheckDistance;
+    protected float groundCheckDistance => enemyStats.groundCheckDistance;
+    protected LayerMask groundLayer => enemyStats.groundLayer;
+
+    protected bool movingRight = true;
 
     private Coroutine tickCoroutine;
 
@@ -18,7 +25,6 @@ public class EnemyBase : Health
             return;
         }
 
-        // Startet die Tick-Coroutine mit zufälligem Offset
         float offset = Random.Range(0f, tickInterval);
         tickCoroutine = StartCoroutine(TickRoutine(offset));
     }
@@ -26,7 +32,6 @@ public class EnemyBase : Health
     private IEnumerator TickRoutine(float startDelay)
     {
         yield return new WaitForSeconds(startDelay);
-
         while (true)
         {
             OnTick();
@@ -45,5 +50,20 @@ public class EnemyBase : Health
     {
         base.Die();
         if (tickCoroutine != null) StopCoroutine(tickCoroutine);
+    }
+
+    protected bool CheckWall()
+    {
+        Vector2 origin = transform.position;
+        Vector2 dir = movingRight ? Vector2.right : Vector2.left;
+        return Physics2D.Raycast(origin, dir, wallCheckDistance, groundLayer);
+    }
+
+    protected bool CheckCliff()
+    {
+        Vector2 origin = transform.position;
+        float direction = movingRight ? 1 : -1;
+        Vector2 groundCheckPos = origin + new Vector2(direction * 0.5f, 0);
+        return !Physics2D.Raycast(groundCheckPos, Vector2.down, groundCheckDistance, groundLayer);
     }
 }
