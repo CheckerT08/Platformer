@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Health : MonoBehaviour
+public class Health : MonoBehaviour, IDamageable
 {
     public HealthData data;
     private float currentHealth;
@@ -8,25 +8,32 @@ public class Health : MonoBehaviour
     private float regenCycleCooldown;
     private bool canRegen;
 
-    public virtual void Start()
+    private Renderer rend;
+    private Color originalColor;
+    private bool isFlashing;
+
+    private void Awake()
     {
         currentHealth = data.maxHealth;
         canRegen = data.canRegenerate;
+
+        rend = GetComponentInChildren<Renderer>();
+        if (rend != null)
+            originalColor = rend.material.color;
     }
 
-    // Methode zum Schaden nehmen
-    public virtual void TakeDamage(float damageAmount)
+    public void TakeDamage(float damageAmount)
     {
         timeSinceDamageTaken = 0f;
         currentHealth -= damageAmount;
 
+        if (!isFlashing) StartCoroutine(Flash());
+
         if (currentHealth <= 0)
-        {
             Die();
-        }
     }
 
-    public virtual void Heal(float healAmount)
+    public void Heal(float healAmount)
     {
         currentHealth += healAmount;
         Debug.Log("Healed " + healAmount + " hp. Current health: " + currentHealth);
@@ -38,7 +45,6 @@ public class Health : MonoBehaviour
         if (canRegen)
         {
             regenCycleCooldown -= Time.deltaTime;
-
             if (timeSinceDamageTaken > data.regenCooldown && regenCycleCooldown < 0f)
             {
                 regenCycleCooldown = 1f;
@@ -47,9 +53,21 @@ public class Health : MonoBehaviour
         }
     }
 
-    // Methode für den Tod des Spielers
-    public virtual void Die()
+    private void Die()
     {
-        Debug.Log("Died.");
+        Debug.Log($"{gameObject.name} died.");
+        Destroy(gameObject);
+    }
+
+    private System.Collections.IEnumerator Flash()
+    {
+        isFlashing = true;
+        if (rend != null)
+        {
+            rend.material.color = Color.white;
+            yield return new WaitForSeconds(0.1f);
+            rend.material.color = originalColor;
+        }
+        isFlashing = false;
     }
 }
