@@ -1,11 +1,18 @@
 using UnityEngine;
 
-public class PlayerHealth : Health
+public class PlayerHealth : MonoBehaviour, IDamageable
 {
-    public override void TakeDamage(float amt)
+    private Health health;
+
+    private void Awake()
+    {
+        health = GetComponent<Health>();
+    }
+
+    public void TakeDamage(float amt)
     {
         Debug.Log("Player takes damage: " + amt);
-        base.TakeDamage(amt);
-        // zusätzliche Spielerlogik hier (z. B. Animation, UI)
+        health?.TakeDamage(amt);
+        // z.B. Kamera wackeln, UI Feedback etc.
     }
 }
