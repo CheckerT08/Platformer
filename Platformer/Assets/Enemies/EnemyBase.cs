@@ -1,35 +1,40 @@
 using System.Collections;
 using UnityEngine;
 
-public class EnemyBase : Health
+public class EnemyBase : MonoBehaviour
 {
-    [Header("Enemy Configuration")]
+    [Header("Enemy Settings")]
     public EnemyStats enemyStats;
-
     public float tickInterval = 0.2f;
 
-    protected float speed => enemyStats.speed;
-    protected float wallCheckDistance => enemyStats.wallCheckDistance;
-    protected float groundCheckDistance => enemyStats.groundCheckDistance;
-    protected LayerMask groundLayer => enemyStats.groundLayer;
-
     protected bool movingRight = true;
+    protected float speed;
 
-    private Coroutine tickCoroutine;
+    protected float wallCheckDistance;
+    protected float groundCheckDistance;
+    protected LayerMask groundLayer;
 
-    public virtual void Awake()
+    private Coroutine tickRoutine;
+
+    protected virtual void Awake()
     {
         if (enemyStats == null)
         {
-            Debug.LogWarning("No EnemyStats assigned to " + gameObject.name);
+            Debug.LogWarning($"No EnemyStats assigned to {gameObject.name}");
             return;
         }
 
-        float offset = Random.Range(0f, tickInterval);
-        tickCoroutine = StartCoroutine(TickRoutine(offset));
+        // Werte aus Stats übernehmen
+        speed = enemyStats.speed;
+        wallCheckDistance = enemyStats.wallCheckDistance;
+        groundCheckDistance = enemyStats.groundCheckDistance;
+        groundLayer = enemyStats.groundLayer;
+
+        // Tick starten
+        tickRoutine = StartCoroutine(TickLoop(Random.Range(0f, tickInterval)));
     }
 
-    private IEnumerator TickRoutine(float startDelay)
+    private IEnumerator TickLoop(float startDelay)
     {
         yield return new WaitForSeconds(startDelay);
         while (true)
@@ -39,31 +44,44 @@ public class EnemyBase : Health
         }
     }
 
-    protected virtual void OnTick() { }
-
-    public override void TakeDamage(float amt)
+    protected virtual void OnTick()
     {
-        base.TakeDamage(amt);
+        Move();
+        if (CheckWall() || CheckCliff()) Flip();
     }
 
-    public override void Die()
+    protected virtual void Move()
     {
-        base.Die();
-        if (tickCoroutine != null) StopCoroutine(tickCoroutine);
+        float direction = movingRight ? 1f : -1f;
+        transform.Translate(Vector2.right * direction * speed * Time.deltaTime);
+    }
+
+    protected void Flip()
+    {
+        movingRight = !movingRight;
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
     }
 
     protected bool CheckWall()
     {
         Vector2 origin = transform.position;
-        Vector2 dir = movingRight ? Vector2.right : Vector2.left;
-        return Physics2D.Raycast(origin, dir, wallCheckDistance, groundLayer);
+        Vector2 direction = movingRight ? Vector2.right : Vector2.left;
+        return Physics2D.Raycast(origin, direction, wallCheckDistance, groundLayer);
     }
 
     protected bool CheckCliff()
     {
         Vector2 origin = transform.position;
-        float direction = movingRight ? 1 : -1;
-        Vector2 groundCheckPos = origin + new Vector2(direction * 0.5f, 0);
-        return !Physics2D.Raycast(groundCheckPos, Vector2.down, groundCheckDistance, groundLayer);
+        float direction = movingRight ? 1f : -1f;
+        Vector2 checkPos = origin + new Vector2(direction * 0.5f, 0);
+        return !Physics2D.Raycast(checkPos, Vector2.down, groundCheckDistance, groundLayer);
+    }
+
+    public virtual void OnDeath()
+    {
+        if (tickRoutine != null) StopCoroutine(tickRoutine);
+        Debug.Log($"{gameObject.name} is dead.");
     }
 }
