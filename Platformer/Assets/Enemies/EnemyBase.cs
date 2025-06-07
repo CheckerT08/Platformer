@@ -28,7 +28,7 @@ public class EnemyBase : MonoBehaviour
         speed = enemyStats.speed;
         wallCheckDistance = enemyStats.wallCheckDistance;
         groundCheckDistance = enemyStats.groundCheckDistance;
-        groundLayer = enemyStats.groundLayer;
+        groundLayer = LayerMask.GetMask("Level Collidable");
 
         // Tick starten
         tickRoutine = StartCoroutine(TickLoop(Random.Range(0f, tickInterval)));
