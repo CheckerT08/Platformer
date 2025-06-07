@@ -176,7 +176,7 @@ public class Player : MonoBehaviour
 
     #region Jumping
 
-    void UpdateTimers()
+    void UpdateTimers() // Rename to Jump_Timers
     {
         coyoteTimer = IsGround() ? coyoteTime : coyoteTimer - Time.deltaTime;
 
@@ -192,6 +192,7 @@ public class Player : MonoBehaviour
 
     void TryJump()
     {
+        if (IsLadder()) return;
         if (IsWall() && coyoteTimer < 0f && input != 0f)
         {
             isWallJumping = true;
