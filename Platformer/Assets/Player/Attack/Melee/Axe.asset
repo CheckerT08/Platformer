@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Axe
   m_EditorClassIdentifier: 
   attackName: Axe
-  playerCooldown: -6.57
+  playerCooldown: 0
   castTime: 0.4
   damage: 5
   hitInterval: 0

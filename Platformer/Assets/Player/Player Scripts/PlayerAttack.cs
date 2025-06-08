@@ -32,12 +32,14 @@ public class PlayerAttack : MonoBehaviour
 
     public void TryAttack(AttackBase attack)
     {
+        print("Try");
         if (isAttacking || globalCooldownTimer > 0f) return;
         StartCoroutine(HandleAttack(attack));
     }
 
     private IEnumerator HandleAttack(AttackBase attack)
     {
+        print("handle");
         isAttacking = true;
 
         if (attack.castTime > 0f)

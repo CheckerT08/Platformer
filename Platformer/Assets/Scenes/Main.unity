@@ -47000,7 +47000,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d69e112ceab6604cad6b5ae762a6047, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data: {fileID: 0}
 --- !u!1 &726157433
 GameObject:
   m_ObjectHideFlags: 0
@@ -48472,6 +48471,7 @@ GameObject:
   - component: {fileID: 1918769790}
   - component: {fileID: 1918769787}
   - component: {fileID: 1918769791}
+  - component: {fileID: 1918769792}
   m_Layer: 11
   m_Name: Slime
   m_TagString: Untagged
@@ -48516,7 +48516,7 @@ BoxCollider2D:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 1, y: 2}
-    newSize: {x: 1, y: 2}
+    newSize: {x: 0.16, y: 0.32}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
@@ -48565,12 +48565,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: a7272288f1cbc054c929e6f5c6adaa9a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: cedaaa1720b7b7045a0696857aa223d9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 2}
+  m_Size: {x: 0.16, y: 0.32}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -48630,9 +48630,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44bd9ca4f8b2195438d101703a951124, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data: {fileID: 11400000, guid: 5bddd69e286be4145b92a1b153117ba2, type: 2}
   enemyStats: {fileID: 11400000, guid: b198d0ba30f21a843b405c15d6aad413, type: 2}
   tickInterval: 0.2
+--- !u!114 &1918769792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918769785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e2160a3cf9c88447ad129bcb87796eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 11400000, guid: 5bddd69e286be4145b92a1b153117ba2, type: 2}
 --- !u!1 &1938481577
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,34 +1,25 @@
+using UnityEngine;
+
 public static class Game
 {
-    public static class Tags
+    public static class Layer
     {
-        public const string Player = "Player";
-        public const string Enemy = "Enemy";
-        public const string Collectible = "Collectible";
+        public static readonly LayerMask groundMask = LayerMask.GetMask("Level Collidable");
+        public static readonly LayerMask enemyMask = LayerMask.GetMask("Enemies");
+        public static readonly LayerMask ladderMask = LayerMask.GetMask("Level Ladder");
+
+        public static bool LayerMaskContainsLayer(LayerMask mask, int layer)
+        {
+            return (mask.value & (1 << layer)) != 0;
+        }
     }
 
-    public static class Layers
+    public static class Damager
     {
-        public static readonly int Ground = LayerMask.NameToLayer("Ground");
-        public static readonly int Enemy = LayerMask.NameToLayer("Enemy");
-        public static readonly LayerMask GroundMask = 1 << Ground;
-    }
-
-    public static class Anim
-    {
-        public const string IsRunning = "isRunning";
-        public const string IsJumping = "isJumping";
-    }
-
-    public static class Scenes
-    {
-        public const string MainMenu = "MainMenu";
-        public const string Level1 = "Level1";
-    }
-
-    public static class Colors
-    {
-        public static readonly Color DamageFlash = Color.white;
-        public static readonly Color HealFlash = Color.green;
+        public static void Damage(GameObject obj, float damage)
+        {
+            obj.TryGetComponent<IDamageable>(out var target);
+            target?.TakeDamage(damage);
+        }
     }
 }

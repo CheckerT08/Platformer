@@ -43,8 +43,8 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (timeAlive < 0.1) return;
-        if (!LayerMaskContainsLayer(targetMask, collision.gameObject.layer)) return;
+        if (Game.Layer.groundMask == collision.gameObject.layer) Die();
+        if (!Game.Layer.LayerMaskContainsLayer(targetMask, collision.gameObject.layer)) return;
         HandleCollision(collision);
     }
 
@@ -52,10 +52,9 @@ public class Projectile : MonoBehaviour
     {
         piercesLeft--;
         if (piercesLeft < 1)
-            Destroy(gameObject);
+            Die();
 
-        if (collider.TryGetComponent(out Health health))
-            health.TakeDamage(dat.damage);
+        Game.Damager.Damage(collider.gameObject, dat.damage);
 
         foreach (Effect effect in dat.effects)
             effect.ApplyTo(collider.gameObject);
@@ -70,8 +69,8 @@ public class Projectile : MonoBehaviour
         Debug.Log($"Projectile deflected to direction: {velocity}");
     }
 
-    public static bool LayerMaskContainsLayer(LayerMask mask, int layer)
+    public void Die()
     {
-        return (mask.value & (1 << layer)) != 0;
+        Destroy(gameObject);
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 8638498046025703131, guid: acc260b9c121cd04d93f93ba92f95f35, type: 3}
   lifetime: 10
   damage: 30
-  pierce: 2
+  pierce: 0
   targetMask:
     serializedVersion: 2
     m_Bits: 2048

@@ -2,16 +2,24 @@ using UnityEngine;
 
 public class SlimeEnemy : EnemyBase
 {
-    protected override void OnTick()
+    private float direction => movingRight ? 1f : -1f;
+
+    private void Update()
     {
-        float direction = movingRight ? 1 : -1;
         transform.Translate(Vector2.right * direction * speed * Time.deltaTime);
 
-        if (CheckWall() || CheckCliff())
+        if (CheckWall())
             Flip();
+        if (CheckWall()) print("Wall");
+
     }
 
-    public override void OnDeath()
+    protected override void OnTick()
+    {
+        
+    }
+
+    protected override void OnDeath()
     {
         base.OnDeath();
         Debug.Log("Slime explodes into goo!");

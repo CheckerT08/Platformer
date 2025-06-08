@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackName: Bow
   playerCooldown: 0
-  castTime: 1
+  castTime: 0.21
   projectile: {fileID: 11400000, guid: 6ac8ab78ba5575d43916d2e594d0c15f, type: 2}

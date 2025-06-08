@@ -7,5 +7,4 @@ public class EnemyStats : ScriptableObject
     public bool invincible;
     public float speed;
     public float wallCheckDistance;
-    public float groundCheckDistance;
 }

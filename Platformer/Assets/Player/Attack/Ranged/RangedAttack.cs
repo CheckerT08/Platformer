@@ -7,6 +7,7 @@ public class RangedAttack : AttackBase
 
     public override IEnumerator Execute(Transform attacker, LayerMask targetLayer)
     {
+        Debug.Log("Execute Ranged ATK");
         yield break;
     }
 }

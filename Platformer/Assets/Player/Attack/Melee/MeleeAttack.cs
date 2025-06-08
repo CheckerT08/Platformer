@@ -12,6 +12,7 @@ public class MeleeAttack : AttackBase
 
     public override sealed IEnumerator Execute(Transform attacker, LayerMask targetLayer)
     {
+        Debug.Log("Melee");
         yield return BeforeAttack(attacker, targetLayer);
 
         for (int i = 0; i < hitRepeatAmount; i++)
@@ -23,8 +24,7 @@ public class MeleeAttack : AttackBase
 
             foreach (Collider2D enemy in hitEnemies)
             {
-                if (enemy.TryGetComponent(out Health health))
-                    health.TakeDamage(damage);
+                Game.Damager.Damage(enemy.gameObject, damage);
 
                 foreach (Effect effect in atteffects)
                 {

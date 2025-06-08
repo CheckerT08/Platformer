@@ -15,6 +15,4 @@ MonoBehaviour:
   attackName: Fireball
   playerCooldown: 0
   castTime: 0.2
-  damage: 23
-  effects: []
-  data: {fileID: 11400000, guid: 3bba69ca51cce3b49818d760d0498a70, type: 2}
+  projectile: {fileID: 11400000, guid: 3bba69ca51cce3b49818d760d0498a70, type: 2}

@@ -1,17 +1,16 @@
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(Health))]
 public class EnemyBase : MonoBehaviour
 {
     [Header("Enemy Settings")]
     public EnemyStats enemyStats;
     public float tickInterval = 0.2f;
-
     protected bool movingRight = true;
     protected float speed;
 
     protected float wallCheckDistance;
-    protected float groundCheckDistance;
     protected LayerMask groundLayer;
 
     private Coroutine tickRoutine;
@@ -27,7 +26,6 @@ public class EnemyBase : MonoBehaviour
         // Werte aus Stats übernehmen
         speed = enemyStats.speed;
         wallCheckDistance = enemyStats.wallCheckDistance;
-        groundCheckDistance = enemyStats.groundCheckDistance;
         groundLayer = LayerMask.GetMask("Level Collidable");
 
         // Tick starten
@@ -46,14 +44,6 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void OnTick()
     {
-        Move();
-        if (CheckWall() || CheckCliff()) Flip();
-    }
-
-    protected virtual void Move()
-    {
-        float direction = movingRight ? 1f : -1f;
-        transform.Translate(Vector2.right * direction * speed * Time.deltaTime);
     }
 
     protected void Flip()
@@ -67,19 +57,10 @@ public class EnemyBase : MonoBehaviour
     protected bool CheckWall()
     {
         Vector2 origin = transform.position;
-        Vector2 direction = movingRight ? Vector2.right : Vector2.left;
-        return Physics2D.Raycast(origin, direction, wallCheckDistance, groundLayer);
+        return Physics2D.Raycast(origin, transform.localScale, wallCheckDistance, groundLayer);
     }
 
-    protected bool CheckCliff()
-    {
-        Vector2 origin = transform.position;
-        float direction = movingRight ? 1f : -1f;
-        Vector2 checkPos = origin + new Vector2(direction * 0.5f, 0);
-        return !Physics2D.Raycast(checkPos, Vector2.down, groundCheckDistance, groundLayer);
-    }
-
-    public virtual void OnDeath()
+    protected virtual void OnDeath()
     {
         if (tickRoutine != null) StopCoroutine(tickRoutine);
         Debug.Log($"{gameObject.name} is dead.");
