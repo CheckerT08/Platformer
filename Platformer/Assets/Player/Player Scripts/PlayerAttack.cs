@@ -6,7 +6,6 @@ using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private AttackBase[] attacks;
 
     private bool isAttacking;
@@ -45,7 +44,7 @@ public class PlayerAttack : MonoBehaviour
         if (attack.castTime > 0f)
             yield return new WaitForSeconds(attack.castTime);
 
-        yield return StartCoroutine(attack.Execute(transform.parent, enemyLayer));
+        yield return StartCoroutine(attack.Execute(transform.parent, Game.Layer.enemyLayer));
 
         globalCooldownTimer = attack.playerCooldown;
         yield return new WaitForSeconds(attack.playerCooldown);

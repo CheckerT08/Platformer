@@ -43,7 +43,7 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (Game.Layer.groundMask == collision.gameObject.layer) Die();
+        if (Game.Layer.groundLayer == collision.gameObject.layer) Die();
         if (!Game.Layer.LayerMaskContainsLayer(targetMask, collision.gameObject.layer)) return;
         HandleCollision(collision);
     }

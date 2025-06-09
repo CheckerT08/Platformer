@@ -4,9 +4,9 @@ public static class Game
 {
     public static class Layer
     {
-        public static readonly LayerMask groundMask = LayerMask.GetMask("Level Collidable");
-        public static readonly LayerMask enemyMask = LayerMask.GetMask("Enemies");
-        public static readonly LayerMask ladderMask = LayerMask.GetMask("Level Ladder");
+        public static readonly LayerMask groundLayer = LayerMask.GetMask("Level Collidable");
+        public static readonly LayerMask enemyLayer = LayerMask.GetMask("Enemies");
+        public static readonly LayerMask ladderLayer = LayerMask.GetMask("Level Ladder");
 
         public static bool LayerMaskContainsLayer(LayerMask mask, int layer)
         {

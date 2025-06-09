@@ -35,12 +35,6 @@ public class Player : MonoBehaviour
     [SerializeField] private float coyoteTime = 0.2f;
     [SerializeField] private float jumpBufferTime = 0.2f;
 
-    [Header("Touch Areas")]
-    [SerializeField] private RectTransform leftArea;
-    [SerializeField] private RectTransform rightArea;
-    [SerializeField] private RectTransform jumpArea;
-    [SerializeField] private RectTransform dashArea;
-
     [Header("Camera")]
     [SerializeField] private GameObject cameraFollowGO;
 
@@ -73,14 +67,6 @@ public class Player : MonoBehaviour
         cameraFollowObject = cameraFollowGO.GetComponent<CameraFollowObject>();
 
 #if UNITY_ANDROID
-        var canvas = leftArea?.GetComponentInParent<Canvas>();
-        if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceCamera)
-        {
-            leftRect = GetScreenRect(leftArea);
-            rightRect = GetScreenRect(rightArea);
-            jumpRect = GetScreenRect(jumpArea);
-            dashRect = GetScreenRect(dashArea);
-        }
 #endif
     }
 
@@ -121,13 +107,6 @@ public class Player : MonoBehaviour
     public void SetJumpHeld(bool held)
     {
         isJumpHeld = held;
-    }
-
-    private Rect GetScreenRect(RectTransform rectTransform)
-    {
-        Vector3[] corners = new Vector3[4];
-        rectTransform.GetWorldCorners(corners);
-        return new Rect(corners[0], corners[2] - corners[0]);
     }
 
     #endregion

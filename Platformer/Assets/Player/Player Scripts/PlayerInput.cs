@@ -1,13 +1,21 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
-using TouchPhase = UnityEngine.InputSystem.TouchPhase;
+using Touch = UnityEngine.Touch;
+using TouchPhase = UnityEngine.TouchPhase;
 
 public class PlayerInputHandler : MonoBehaviour
 {
     public Player player;
 
+    [Header("Touch Areas")]
+    [SerializeField] private RectTransform leftArea;
+    [SerializeField] private RectTransform rightArea;
+    [SerializeField] private RectTransform jumpArea;
+    [SerializeField] private RectTransform dashArea;
+
+    [HideInInspector] public Rect leftRect, rightRect, jumpRect, dashRect;
+    
     float input;
     bool jumpHeld;
     bool jumpPressed;
@@ -15,7 +23,15 @@ public class PlayerInputHandler : MonoBehaviour
 
     void Awake()
     {
-        EnhancedTouchSupport.Enable();
+        var canvas = leftArea?.GetComponentInParent<Canvas>();
+        if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceCamera)
+        {
+            leftRect = GetScreenRect(leftArea);
+            rightRect = GetScreenRect(rightArea);
+            jumpRect = GetScreenRect(jumpArea);
+            dashRect = GetScreenRect(dashArea);
+        }
+
     }
 
     void Update()
@@ -41,26 +57,28 @@ public class PlayerInputHandler : MonoBehaviour
         // Beispiel Dash mit Shift oder Maus links
         dashPressed = keyboard.leftShiftKey.wasPressedThisFrame;
 #else
-        foreach (Touch touch in Touch.activeTouches)
+        for (int i = 0; i < Input.touchCount; i++)
         {
-            Vector2 pos = touch.screenPosition;
+            Touch touch = Input.GetTouch(i);
+            Vector2 pos = touch.position;
 
-            if (player.leftRect.Contains(pos))
+            if (leftRect.Contains(pos))
                 input = -1f;
 
-            if (player.rightRect.Contains(pos))
+            if (rightRect.Contains(pos))
                 input = 1f;
 
-            if (player.jumpRect.Contains(pos))
+            if (jumpRect.Contains(pos))
             {
                 jumpHeld = true;
                 if (touch.phase == TouchPhase.Began)
                     jumpPressed = true;
             }
 
-            if (player.dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            if (dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
                 dashPressed = true;
         }
+
 #endif
 
         if (jumpPressed)
@@ -73,8 +91,11 @@ public class PlayerInputHandler : MonoBehaviour
         player.SetJumpHeld(jumpHeld);
     }
 
-    void OnDestroy()
+    private Rect GetScreenRect(RectTransform rectTransform)
     {
-        EnhancedTouchSupport.Disable();
+        Vector3[] corners = new Vector3[4];
+        rectTransform.GetWorldCorners(corners);
+        return new Rect(corners[0], corners[2] - corners[0]);
     }
+
 }

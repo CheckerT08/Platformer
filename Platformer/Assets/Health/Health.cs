@@ -8,26 +8,17 @@ public class Health : MonoBehaviour, IDamageable
     private float regenCycleCooldown;
     private bool canRegen;
 
-    private Renderer rend;
-    private Color originalColor;
-    private bool isFlashing;
 
     private void Awake()
     {
         currentHealth = data.maxHealth;
         canRegen = data.canRegenerate;
-
-        rend = GetComponentInChildren<Renderer>();
-        if (rend != null)
-            originalColor = rend.material.color;
     }
 
     public void TakeDamage(float damageAmount)
     {
         timeSinceDamageTaken = 0f;
         currentHealth -= damageAmount;
-
-        if (!isFlashing) StartCoroutine(Flash());
 
         if (currentHealth <= 0)
             Die();
@@ -57,17 +48,5 @@ public class Health : MonoBehaviour, IDamageable
     {
         Debug.Log($"{gameObject.name} died.");
         Destroy(gameObject);
-    }
-
-    private System.Collections.IEnumerator Flash()
-    {
-        isFlashing = true;
-        if (rend != null)
-        {
-            rend.material.color = Color.white;
-            yield return new WaitForSeconds(0.1f);
-            rend.material.color = originalColor;
-        }
-        isFlashing = false;
     }
 }
