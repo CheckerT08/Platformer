@@ -6,10 +6,20 @@ using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [SerializeField] private AttackBase[] attacks;
+    public AttackBase[] attacks;
+
+    public int primaryAttackID, rangedAttackID, dashAttackID, specialAttackID;
 
     private bool isAttacking;
     private float globalCooldownTimer;
+
+    private void Start()
+    {
+        primaryAttackID = Game.Save.Get<int>(Game.Save.primaryAttackLocation);
+        rangedAttackID = Game.Save.Get<int>(Game.Save.rangedAttackLocation);
+        dashAttackID = Game.Save.Get<int>(Game.Save.dashAttackLocation);
+        specialAttackID = Game.Save.Get<int>(Game.Save.specialAttackLocation);
+    }
 
     private void Update()
     {

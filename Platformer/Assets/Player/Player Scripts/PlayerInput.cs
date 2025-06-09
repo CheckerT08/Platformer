@@ -6,15 +6,18 @@ using TouchPhase = UnityEngine.TouchPhase;
 
 public class PlayerInputHandler : MonoBehaviour
 {
-    public Player player;
+    Player player;
+    PlayerAttack playerAttack;
 
     [Header("Touch Areas")]
     [SerializeField] private RectTransform leftArea;
     [SerializeField] private RectTransform rightArea;
     [SerializeField] private RectTransform jumpArea;
     [SerializeField] private RectTransform dashArea;
+    [SerializeField] private RectTransform attackArea;
+    [SerializeField] private RectTransform rangedAttackArea;
 
-    [HideInInspector] public Rect leftRect, rightRect, jumpRect, dashRect;
+    [HideInInspector] public Rect leftRect, rightRect, jumpRect, dashRect, attackRect, rangedAttackRect;
     
     float input;
     bool jumpHeld;
@@ -23,6 +26,9 @@ public class PlayerInputHandler : MonoBehaviour
 
     void Awake()
     {
+        player = GetComponent<Player>();
+        playerAttack = GetComponent<PlayerAttack>();
+
         var canvas = leftArea?.GetComponentInParent<Canvas>();
         if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceCamera)
         {
@@ -30,6 +36,8 @@ public class PlayerInputHandler : MonoBehaviour
             rightRect = GetScreenRect(rightArea);
             jumpRect = GetScreenRect(jumpArea);
             dashRect = GetScreenRect(dashArea);
+            attackRect = GetScreenRect(attackArea);
+            rangedAttackRect = GetScreenRect(rangedAttackArea);
         }
 
     }
@@ -42,9 +50,8 @@ public class PlayerInputHandler : MonoBehaviour
         dashPressed = false;
 
 #if UNITY_EDITOR
-        // PC Input: Keyboard & Mouse
         var keyboard = Keyboard.current;
-        if (keyboard == null) return; // kein Keyboard gefunden
+        if (keyboard == null) return;
 
         if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
             input = -1f;
@@ -54,7 +61,6 @@ public class PlayerInputHandler : MonoBehaviour
         jumpHeld = keyboard.spaceKey.isPressed;
         jumpPressed = keyboard.spaceKey.wasPressedThisFrame;
 
-        // Beispiel Dash mit Shift oder Maus links
         dashPressed = keyboard.leftShiftKey.wasPressedThisFrame;
 #else
         for (int i = 0; i < Input.touchCount; i++)
@@ -77,6 +83,36 @@ public class PlayerInputHandler : MonoBehaviour
 
             if (dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
                 dashPressed = true;
+
+            if (attackRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            {
+                int idx = playerAttack.primaryAttackID;
+                if (idx >= 0 && idx < playerAttack.attacks.Length)
+                    playerAttack.TryAttack(playerAttack.attacks[idx]);
+            }
+
+            if (rangedAttackRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            {
+                int idx = playerAttack.rangedAttackID;
+                if (idx >= 0 && idx < playerAttack.attacks.Length)
+                    playerAttack.TryAttack(playerAttack.attacks[idx]);
+            }
+
+            // Optional: Dash-Attack (wenn du willst, sonst Dash über player.Dash())
+            // if (dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            // {
+            //     int idx = playerAttack.dashAttackID;
+            //     if (idx >= 0 && idx < playerAttack.attacks.Length)
+            //         playerAttack.TryAttack(playerAttack.attacks[idx]);
+            // }
+
+            // Special-Attack z.B. über einen weiteren Bereich, wenn du den hast
+            // if (specialAttackRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            // {
+            //     int idx = playerAttack.specialAttackID;
+            //     if (idx >= 0 && idx < playerAttack.attacks.Length)
+            //         playerAttack.TryAttack(playerAttack.attacks[idx]);
+            // }
         }
 
 #endif
