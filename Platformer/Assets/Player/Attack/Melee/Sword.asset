@@ -15,7 +15,7 @@ MonoBehaviour:
   attackName: Sword
   playerCooldown: 1
   castTime: 0.1
-  damage: 10
+  damage: 20
   hitInterval: 0.2
   atteffects: []
   hitRepeatAmount: 4
