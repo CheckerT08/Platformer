@@ -64,7 +64,7 @@ public static class Game
         public static void Log(string message)
         {
             Debug.Log(message); // Optional: auch in Unity-Konsole
-            File.AppendAllText(Application.persistentDataPath, $"[{System.DateTime.Now:HH:mm:ss}] - {message}\n");
+            File.AppendAllText(Path.Combine(Application.persistentDataPath, "Logs.txt"), $"[{DateTime.Now:HH:mm:ss}] - {message}\n");
         }
     }
 }

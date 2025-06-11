@@ -1,8 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.EnhancedTouch;
-using Touch = UnityEngine.Touch;
-using TouchPhase = UnityEngine.TouchPhase;
 
 public class PlayerInputHandler : MonoBehaviour
 {
@@ -19,7 +15,7 @@ public class PlayerInputHandler : MonoBehaviour
 
     [HideInInspector] public Rect leftRect, rightRect, jumpRect, dashRect, attackRect, rangedAttackRect;
     
-    float input;
+    float inputX;
     bool jumpHeld;
     bool jumpPressed;
     bool dashPressed;
@@ -46,79 +42,58 @@ public class PlayerInputHandler : MonoBehaviour
 
     void Update()
     {
-        input = 0f;
+        inputX = 0f;
         jumpHeld = false;
         jumpPressed = false;
         dashPressed = false;
 
 #if UNITY_EDITOR
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            inputX = -1f;
+        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            inputX = 1f;
 
-        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
-            input = -1f;
-        else if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
-            input = 1f;
+        jumpHeld = Input.GetKey(KeyCode.Space);
+        jumpPressed = Input.GetKeyDown(KeyCode.Space);
 
-        jumpHeld = keyboard.spaceKey.isPressed;
-        jumpPressed = keyboard.spaceKey.wasPressedThisFrame;
-
-        dashPressed = keyboard.leftShiftKey.wasPressedThisFrame;
+        dashPressed = Input.GetKeyDown(KeyCode.LeftShift);
 #else
+    for (int i = 0; i < Input.touchCount; i++)
+    {
+        Touch touch = Input.GetTouch(i);
+        Vector2 pos = touch.position;
 
-        for (int i = 0; i < Input.touchCount; i++)
+        if (leftRect.Contains(pos))
+            inputX = -1f;
+
+        if (rightRect.Contains(pos))
+            inputX = 1f;
+
+        if (jumpRect.Contains(pos))
         {
-            Touch touch = Input.GetTouch(i);
-            Vector2 pos = touch.position;
-
-            if (leftRect.Contains(pos))
-                input = -1f;
-
-            if (rightRect.Contains(pos))
-                input = 1f;
-
-            if (jumpRect.Contains(pos))
-            {
-                Game.Logger.Log("Jump Rect");
-                jumpHeld = true;
-                if (touch.phase == TouchPhase.Began)
-                    jumpPressed = true;
-            }
-
-            if (dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
-                dashPressed = true;
-
-            if (attackRect.Contains(pos) && touch.phase == TouchPhase.Began)
-            {
-                int idx = playerAttack.primaryAttackID;
-                if (idx >= 0 && idx < playerAttack.attacks.Length)
-                    playerAttack.TryAttack(playerAttack.attacks[idx]);
-            }
-
-            if (rangedAttackRect.Contains(pos) && touch.phase == TouchPhase.Began)
-            {
-                int idx = playerAttack.rangedAttackID;
-                if (idx >= 0 && idx < playerAttack.attacks.Length)
-                    playerAttack.TryAttack(playerAttack.attacks[idx]);
-            }
-
-            // Optional: Dash-Attack (wenn du willst, sonst Dash über player.Dash())
-            // if (dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
-            // {
-            //     int idx = playerAttack.dashAttackID;
-            //     if (idx >= 0 && idx < playerAttack.attacks.Length)
-            //         playerAttack.TryAttack(playerAttack.attacks[idx]);
-            // }
-
-            // Special-Attack z.B. über einen weiteren Bereich, wenn du den hast
-            // if (specialAttackRect.Contains(pos) && touch.phase == TouchPhase.Began)
-            // {
-            //     int idx = playerAttack.specialAttackID;
-            //     if (idx >= 0 && idx < playerAttack.attacks.Length)
-            //         playerAttack.TryAttack(playerAttack.attacks[idx]);
-            // }
+            Game.Logger.Log("Jump Rect");
+            jumpHeld = true;
+            if (touch.phase == TouchPhase.Began)
+                jumpPressed = true;
         }
 
+        if (dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            dashPressed = true;
+
+        if (attackRect.Contains(pos) && touch.phase == TouchPhase.Began)
+        {
+            int idx = playerAttack.primaryAttackID;
+            if (idx >= 0 && idx < playerAttack.attacks.Length)
+                playerAttack.TryAttack(playerAttack.attacks[idx]);
+        }
+
+        if (rangedAttackRect.Contains(pos) && touch.phase == TouchPhase.Began)
+        {
+            int idx = playerAttack.rangedAttackID;
+            if (idx >= 0 && idx < playerAttack.attacks.Length)
+                playerAttack.TryAttack(playerAttack.attacks[idx]);
+        }
+    }
 #endif
 
         if (jumpPressed)
@@ -127,7 +102,7 @@ public class PlayerInputHandler : MonoBehaviour
         if (dashPressed)
             player.Dash();
 
-        player.SetInput(input);
+        player.SetInput(new Vector2(inputX, jumpHeld ? 1 : -1));
         player.SetJumpHeld(jumpHeld);
     }
 
@@ -135,7 +110,8 @@ public class PlayerInputHandler : MonoBehaviour
     {
         Vector3[] corners = new Vector3[4];
         rectTransform.GetWorldCorners(corners);
-        Game.Logger.Log("Getting Screen Rect" + rectTransform.gameObject.name + corners);
+        string cornerlog = string.Join(", ", corners);
+        Game.Logger.Log("Getting Screen Rect " + rectTransform.gameObject.name + cornerlog);
         return new Rect(corners[0], corners[2] - corners[0]);
     }
 
