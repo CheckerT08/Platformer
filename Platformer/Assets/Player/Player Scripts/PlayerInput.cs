@@ -24,13 +24,13 @@ public class PlayerInputHandler : MonoBehaviour
     bool jumpPressed;
     bool dashPressed;
 
-    void Awake()
+    void Start()
     {
         player = GetComponent<Player>();
         playerAttack = GetComponent<PlayerAttack>();
 
         var canvas = leftArea?.GetComponentInParent<Canvas>();
-        if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceCamera)
+        if (canvas != null)
         {
             leftRect = GetScreenRect(leftArea);
             rightRect = GetScreenRect(rightArea);
@@ -39,7 +39,9 @@ public class PlayerInputHandler : MonoBehaviour
             attackRect = GetScreenRect(attackArea);
             rangedAttackRect = GetScreenRect(rangedAttackArea);
         }
-
+        else 
+        Game.Logger.Log("CANVAS IS NULL");
+        Game.Logger.Log($"[Rects] left: {leftRect}, right: {rightRect}, jump: {jumpRect}, dash: {dashRect}, attack: {attackRect}, ranged: {rangedAttackRect}");
     }
 
     void Update()
@@ -63,6 +65,7 @@ public class PlayerInputHandler : MonoBehaviour
 
         dashPressed = keyboard.leftShiftKey.wasPressedThisFrame;
 #else
+
         for (int i = 0; i < Input.touchCount; i++)
         {
             Touch touch = Input.GetTouch(i);
@@ -76,6 +79,7 @@ public class PlayerInputHandler : MonoBehaviour
 
             if (jumpRect.Contains(pos))
             {
+                Game.Logger.Log("Jump Rect");
                 jumpHeld = true;
                 if (touch.phase == TouchPhase.Began)
                     jumpPressed = true;
@@ -131,6 +135,7 @@ public class PlayerInputHandler : MonoBehaviour
     {
         Vector3[] corners = new Vector3[4];
         rectTransform.GetWorldCorners(corners);
+        Game.Logger.Log("Getting Screen Rect" + rectTransform.gameObject.name + corners);
         return new Rect(corners[0], corners[2] - corners[0]);
     }
 

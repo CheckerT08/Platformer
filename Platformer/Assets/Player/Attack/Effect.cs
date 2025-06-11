@@ -15,7 +15,6 @@ public class Effect
     {
         { EffectEnum.Fire, typeof(FireEffect) },
         { EffectEnum.Poison, typeof(PoisonEffect) },
-        { EffectEnum.Bleed, typeof(BleedEffect) },
         { EffectEnum.Speed, typeof(SpeedEffect) },
         { EffectEnum.Slowness, typeof(SlownessEffect) },
         { EffectEnum.Haste, typeof(HasteEffect) },
@@ -46,7 +45,7 @@ public class Effect
 
 public enum EffectEnum
 {
-    Fire, Poison, Bleed,
+    Fire, Poison,
     Speed, Slowness, Haste, AntiHaste,
     Weakness, Strength, AttackWeakness, AttackStrength
 }
@@ -70,7 +69,7 @@ public abstract class BaseEffect : MonoBehaviour
 
     public virtual void OnEffectEnd()
     {
-        
+        Destroy(this);
     }
 }
 
@@ -78,21 +77,54 @@ public abstract class BaseEffect : MonoBehaviour
 
 public class FireEffect : BaseEffect
 {
-    private void Start()
+    float time = 2 * Time.deltaTime; // Für genaue Anzahl an Ticks
+    
+    private void Update()
     {
+        time += Time.deltaTime;
+        if (time > 1)
+        {
+            Tick();
+            time = 0;
+        }
+    }
+
+    void Tick()
+    {
+        Game.Damager.Damage(gameObject, 10);
     }
 
     public override void OnEffectEnd()
     {
+        base.OnEffectEnd();
     }
 }
 
 public class PoisonEffect : BaseEffect
 {
-}
+    float time = 2 * Time.deltaTime; // Für genaue Anzahl an Ticks
 
-public class BleedEffect : BaseEffect
-{
+    private void Update()
+    {
+        time += Time.deltaTime;
+        if (time > 0.5)
+        {
+            Tick();
+            time = 0;
+        }
+    }
+
+    void Tick()
+    {
+        Game.Damager.Damage(gameObject, 7);
+    }
+    
+
+    public override void OnEffectEnd()
+    {
+        base.OnEffectEnd();
+    }
+
 }
 
 public class SpeedEffect : BaseEffect

@@ -207,6 +207,7 @@ public class Player : MonoBehaviour
 
     public void Dash()
     {
+        Debug.Log("DASH!");
         if (!canDash || isDashing) return;
         StartCoroutine(PerformDash());
     }

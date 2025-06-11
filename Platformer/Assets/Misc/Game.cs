@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEngine;
 
 public static class Game
@@ -55,6 +56,15 @@ public static class Game
         {
             obj.TryGetComponent<IDamageable>(out var target);
             target?.TakeDamage(damage);
+        }
+    }
+
+    public static class Logger
+    {
+        public static void Log(string message)
+        {
+            Debug.Log(message); // Optional: auch in Unity-Konsole
+            File.AppendAllText(Application.persistentDataPath, $"[{System.DateTime.Now:HH:mm:ss}] - {message}\n");
         }
     }
 }

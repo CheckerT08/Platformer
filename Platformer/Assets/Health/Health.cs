@@ -17,6 +17,8 @@ public class Health : MonoBehaviour, IDamageable
 
     public void TakeDamage(float damageAmount)
     {
+        Debug.Log($"{gameObject.name} took {damageAmount} damage.");
+
         timeSinceDamageTaken = 0f;
         currentHealth -= damageAmount;
 
