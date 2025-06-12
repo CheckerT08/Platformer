@@ -135,7 +135,7 @@ public class Player : MonoBehaviour
 
     private void UpdateTimers()
     {
-        if (!motor.IsGrounded() && !CanWallJump())
+        if (motor.IsGrounded())
             canDash = true; // reset dash if airborne and not sliding
     }
 
