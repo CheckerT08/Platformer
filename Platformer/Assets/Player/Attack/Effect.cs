@@ -129,14 +129,63 @@ public class PoisonEffect : BaseEffect
 
 public class SpeedEffect : BaseEffect
 {
+    CharacterMotor2D motor = GetComponent<CharacterMotor2D>();
+    float original;
+    
+    void Start()
+    {
+        original = motor.speed;
+        motor.speed *= 1.5f;
+    }
+
+    public override void OnEffectEnd()
+    {
+        motor.speed = original;
+        base.OnEffectEnd();
+    }
 }
 
 public class SlownessEffect : BaseEffect
 {
+    CharacterMotor2D motor = GetComponent<CharacterMotor2D>();
+    float original;
+    
+    void Start()
+    {
+        original = motor.speed;
+        motor.speed *= 0.5f;
+    }
+
+    public override void OnEffectEnd()
+    {
+        motor.speed = original;
+        base.OnEffectEnd();
+    }
+
 }
 
 public class HasteEffect : BaseEffect
 {
+    // Attacker Component schreiben
+    Attacker attacker = GetComponentInChildren<Attacker>(); // Oder in selber
+    float original
+    
+    void Start()
+    {
+        if (attacker == null) 
+        {
+            Destroy(this);
+            return;
+        }
+        original = attacker.attackSpeed;
+        attacker.attackSpeed *= 1.5f;
+    }
+
+    public override void OnEffectEnd()
+    {
+       attacker.attackSpeed = original;
+        base.OnEffectEnd();
+    }
 }
 
 public class AntiHasteEffect : BaseEffect
