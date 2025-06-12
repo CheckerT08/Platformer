@@ -1,8 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 [System.Serializable]
 public class Effect
@@ -10,7 +9,6 @@ public class Effect
     public EffectEnum effect;
     public float duration;
 
-    // Dictionary von EffectEnum auf den zugehörigen MonoBehaviour-Typ
     private static readonly Dictionary<EffectEnum, Type> effectComponentMap = new()
     {
         { EffectEnum.Fire, typeof(FireEffect) },
@@ -28,17 +26,14 @@ public class Effect
     public void ApplyTo(GameObject targetGameObject)
     {
         if (!effectComponentMap.TryGetValue(effect, out Type componentType)) return;
-    
-        // Vorhandene Komponente entfernen, falls vorhanden
+
         var existing = targetGameObject.GetComponent(componentType);
         if (existing != null)
             UnityEngine.Object.Destroy(existing);
-    
-        // Neue Komponente hinzufügen
+
         var component = targetGameObject.AddComponent(componentType);
-    
-        // Falls es eine BaseEffect ist, initialisieren
-        if (component is BaseEffect baseEffect) // Wenn component von BaseEffect erbt
+
+        if (component is BaseEffect baseEffect)
             baseEffect.Init(duration);
     }
 }
@@ -67,143 +62,159 @@ public abstract class BaseEffect : MonoBehaviour
         Destroy(this);
     }
 
-    public virtual void OnEffectEnd()
-    {
-        Destroy(this);
-    }
+    public virtual void OnEffectEnd() { }
 }
 
-// ─────────── Effekte ───────────
+// ─────────── Einzelne Effekte ───────────
 
-public class FireEffect : BaseEffect
+public class FireEffect : TickEffect
 {
-    float time = 2 * Time.deltaTime; // Für genaue Anzahl an Ticks
-    
-    private void Update()
-    {
-        time += Time.deltaTime;
-        if (time > 1)
-        {
-            Tick();
-            time = 0;
-        }
-    }
+    protected override float TickInterval => 1f;
 
-    void Tick()
+    protected override void Tick()
     {
         Game.Damager.Damage(gameObject, 10);
     }
+}
 
-    public override void OnEffectEnd()
+public class PoisonEffect : TickEffect
+{
+    protected override float TickInterval => 0.5f;
+
+    protected override void Tick()
     {
-        base.OnEffectEnd();
+        Game.Damager.Damage(gameObject, 7);
     }
 }
 
-public class PoisonEffect : BaseEffect
+public class SpeedEffect : ValueChangeEffect<CharacterMotor2D>
 {
-    float time = 2 * Time.deltaTime; // Für genaue Anzahl an Ticks
+    void Start() => Init(
+        GetComponent<CharacterMotor2D>(),
+        m => m.speed,
+        (m, v) => m.speed = v,
+        1.5f
+    );
+}
 
-    private void Update()
+public class SlownessEffect : ValueChangeEffect<CharacterMotor2D>
+{
+    void Start() => Init(
+        GetComponent<CharacterMotor2D>(),
+        m => m.speed,
+        (m, v) => m.speed = v,
+        0.5f
+    );
+}
+
+public class HasteEffect : ValueChangeEffect<Attacker>
+{
+    void Start() => Init(
+        GetComponentInChildren<Attacker>(),
+        a => a.attackSpeed,
+        (a, v) => a.attackSpeed = v,
+        1.5f
+    );
+}
+
+public class AntiHasteEffect : ValueChangeEffect<Attacker>
+{
+    void Start() => Init(
+        GetComponentInChildren<Attacker>(),
+        a => a.attackSpeed,
+        (a, v) => a.attackSpeed = v,
+        0.5f
+    );
+}
+
+public class StrengthEffect : ValueChangeEffect<Attacker>
+{
+    void Start() => Init(
+        GetComponentInChildren<Attacker>(),
+        a => a.attackDamageMultiplier,
+        (a, v) => a.attackDamageMultiplier = v,
+        1.5f
+    );
+}
+
+public class WeaknessEffect : ValueChangeEffect<Attacker>
+{
+    void Start() => Init(
+        GetComponentInChildren<Attacker>(),
+        a => a.attackDamageMultiplier,
+        (a, v) => a.attackDamageMultiplier = v,
+        0.5f
+    );
+}
+
+public class AttackStrengthEffect : ValueChangeEffect<Attacker>
+{
+    void Start() => Init(
+        GetComponentInChildren<Attacker>(),
+        a => a.attackPower,
+        (a, v) => a.attackPower = v,
+        1.5f
+    );
+}
+
+public class AttackWeaknessEffect : ValueChangeEffect<Attacker>
+{
+    void Start() => Init(
+        GetComponentInChildren<Attacker>(),
+        a => a.attackPower,
+        (a, v) => a.attackPower = v,
+        0.5f
+    );
+}
+
+// ─────────── Basisklassen ───────────
+
+public abstract class TickEffect : BaseEffect
+{
+    protected abstract float TickInterval;
+    private float time;
+
+    void Update()
     {
         time += Time.deltaTime;
-        if (time > 0.5)
+        if (time >= TickInterval)
         {
             Tick();
             time = 0;
         }
     }
 
-    void Tick()
-    {
-        Game.Damager.Damage(gameObject, 7);
-    }
-    
-
-    public override void OnEffectEnd()
-    {
-        base.OnEffectEnd();
-    }
-
+    protected abstract void Tick();
 }
 
-public class SpeedEffect : BaseEffect
+public abstract class ValueChangeEffect<T> : BaseEffect where T : Component
 {
-    CharacterMotor2D motor = GetComponent<CharacterMotor2D>();
-    float original;
-    
-    void Start()
-    {
-        original = motor.speed;
-        motor.speed *= 1.5f;
-    }
+    private T target;
+    private Func<T, float> getter;
+    private Action<T, float> setter;
+    private float original;
 
-    public override void OnEffectEnd()
+    protected void Init(T target, Func<T, float> getter, Action<T, float> setter, float multiplier)
     {
-        motor.speed = original;
-        base.OnEffectEnd();
-    }
-}
+        this.target = target;
+        this.getter = getter;
+        this.setter = setter;
 
-public class SlownessEffect : BaseEffect
-{
-    CharacterMotor2D motor = GetComponent<CharacterMotor2D>();
-    float original;
-    
-    void Start()
-    {
-        original = motor.speed;
-        motor.speed *= 0.5f;
-    }
-
-    public override void OnEffectEnd()
-    {
-        motor.speed = original;
-        base.OnEffectEnd();
-    }
-
-}
-
-public class HasteEffect : BaseEffect
-{
-    // Attacker Component schreiben
-    Attacker attacker = GetComponentInChildren<Attacker>(); // Oder in selber
-    float original
-    
-    void Start()
-    {
-        if (attacker == null) 
+        if (target == null)
         {
             Destroy(this);
             return;
         }
-        original = attacker.attackSpeed;
-        attacker.attackSpeed *= 1.5f;
+
+        original = getter(target);
+        setter(target, original * multiplier);
     }
 
     public override void OnEffectEnd()
     {
-       attacker.attackSpeed = original;
+        if (target != null)
+            setter(target, original);
+
         base.OnEffectEnd();
     }
-}
-
-public class AntiHasteEffect : BaseEffect
-{
-}
-
-public class WeaknessEffect : BaseEffect
-{
-}
-
-public class StrengthEffect : BaseEffect
-{
-}
-
-public class AttackWeaknessEffect : BaseEffect
-{
-}
-
-public class AttackStrengthEffect : BaseEffect
-{
 }
