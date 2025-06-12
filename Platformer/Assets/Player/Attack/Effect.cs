@@ -171,7 +171,7 @@ public class AttackWeaknessEffect : ValueChangeEffect<Attacker>
 
 public abstract class TickEffect : BaseEffect
 {
-    protected abstract float TickInterval;
+    protected abstract float TickInterval { get; }
     private float time;
 
     void Update()
@@ -217,4 +217,12 @@ public abstract class ValueChangeEffect<T> : BaseEffect where T : Component
 
         base.OnEffectEnd();
     }
+}
+
+// DUMMY CLASS
+public class Attacker : MonoBehaviour
+{
+    public float attackSpeed = 1f;
+    public float attackDamageMultiplier = 1f;
+    public float attackPower = 1f;
 }

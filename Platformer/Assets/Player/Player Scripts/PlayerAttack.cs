@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Linq;
-using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -26,16 +25,13 @@ public class PlayerAttack : MonoBehaviour
         globalCooldownTimer -= Time.deltaTime;
 
         // Example Input (Replace with your actual input handling)
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
-
-        if (keyboard.zKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(KeyCode.Z))
             TryAttack(attacks[0]);
-        if (keyboard.xKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(KeyCode.X))
             TryAttack(attacks[1]);
-        if (keyboard.cKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(KeyCode.C))
             TryAttack(attacks[2]);
-        if (keyboard.vKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(KeyCode.V))
             TryAttack(attacks[3]);
     }
 

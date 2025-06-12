@@ -1,4 +1,4 @@
-using UnityEngine;
+/*using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(BoxCollider2D))]
@@ -65,3 +65,4 @@ public class RaycastController : MonoBehaviour
         public Vector2 bottomLeft, bottomRight;
     }
 }
+*/
