@@ -1,126 +1,120 @@
+// player.cs
 using UnityEngine;
 
-[RequireComponent(typeof(BoxCollider2D))]
-[RequireComponent(typeof(PlayerInput))]
+[RequireComponent(typeof(MovementBody))]
+[RequireComponent(typeof(PlayerAttack))]
 public class NewPlayerScript : MonoBehaviour
 {
-    public float speed = 8f;
-    
-    public float accelerationTimeGrounded = 0.1f;
-    public float accelerationTimeAirborne = 0.2f;
-    
-    public float upGravity = 30f;
-    public float downGravity = 50f;
-    public float maxFallSpeed = 20f;
-    public bool gravityActive = true;
+    MovementBody body;
+    PlayerAttack playerAttack;
 
-    public float maxWallSlideSpeed = 3f;
+    [SerializeField] private RectTransform leftArea;
+    [SerializeField] private RectTransform rightArea;
+    [SerializeField] private RectTransform jumpArea;
+    [SerializeField] private RectTransform dashArea;
+    [SerializeField] private RectTransform attackArea;
+    [SerializeField] private RectTransform rangedAttackArea;
 
-    public float ladderClimbSpeed = 5f;
+    [HideInInspector] public Rect leftRect, rightRect, jumpRect, dashRect, attackRect, rangedAttackRect;
 
-    Vector2 velocity;
-    bool isClimbingLadder;
-    bool facingRight = true;
-    const float skinWidth = .015f;
-    const float dstBetweenRays;
-    int horizontalRayCount = 5, verticalRayCount = 5;
-    float horizontalRaySpacing, verticalRaySpacing;
-    float velocityXSmoothing;
-    float inputX;
-    BoxCollider2D boxCollider;
-    PlayerInput input;
-    RaycastOrigins raycastOrigins;
-    public CollisionInfo collisions;
+    Vector2 input;
+    bool jumpPressed;
+    bool dashPressed;
 
-    // AWAKE && START
-    void Awake()
+
+    private void Awake()
     {
-        boxCollider = GetComponent<BoxCollider2D>();
-        collisions = new CollisionInfo();
-        CalculateRaySpacing();
+        body = GetComponent<MovementBody>();
+        playerAttack = GetComponent<PlayerAttack>();
+
+        var canvas = leftArea?.GetComponentInParent<Canvas>();
+        if (canvas != null)
+        {
+            leftRect = GetScreenRect(leftArea);
+            rightRect = GetScreenRect(rightArea);
+            jumpRect = GetScreenRect(jumpArea);
+            dashRect = GetScreenRect(dashArea);
+            attackRect = GetScreenRect(attackArea);
+            rangedAttackRect = GetScreenRect(rangedAttackArea);
+        }
     }
 
-    void CalculateRaySpacing()
-    {
-        Bounds bounds = boxCollider.bounds;
-        bounds.Expand(skinWidth * -2);
-
-        horizontalRayCount = Mathf.Clamp(Mathf.RoundToInt(bounds.size.y / dstBetweenRays), 2, int.MaxValue);
-        verticalRayCount = Mathf.Clamp(Mathf.RoundToInt(bounds.size.x / dstBetweenRays), 2, int.MaxValue);
-
-        horizontalRaySpacing = bounds.size.y / (horizontalRayCount - 1);
-        verticalRaySpacing = bounds.size.x / (verticalRayCount - 1);
-    }
-    
-    // UPDATE
     void Update()
     {
-        UpdateRaycastOrigins();
-        Input();
-        PrecalculateMovement();
-    }
+        input = Vector2.zero;
+        jumpPressed = false;
+        dashPressed = false;
 
-    void UpdateRaycastOrigins()
-    {
-        Bounds bounds = boxCollider.bounds;
-        bounds.Expand(skinWidth * -2);
+#if UNITY_EDITOR
+        if (Input.GetKey(KeyCode.LeftArrow))
+            input.x = -1f;
+        else if (Input.GetKey(KeyCode.RightArrow))
+            input.x = 1f;
 
-        raycastOrigins.bottomLeft = new Vector2(bounds.min.x, bounds.min.y);
-        raycastOrigins.bottomRight = new Vector2(bounds.max.x, bounds.min.y);
-        raycastOrigins.topLeft = new Vector2(bounds.min.x, bounds.max.y);
-        raycastOrigins.topRight = new Vector2(bounds.max.x, bounds.max.y); 
-    }
+        if (Input.GetKey(KeyCode.Space))
+            input.y = 1f;
+        jumpPressed = Input.GetKeyDown(KeyCode.Space);
 
-    void Input()
-    {
-        //inputX = input
-    }
-
-    void ApplyGravity()
-    {
-        if (IsLadder()) return;
-
-        
-        velocity.y = Mathf.Clamp(velocity.y, -maxFallSpeed, float.MaxValue);
-    }
-
-    void PrecalculateMovement()
-    {
-        float targetVelocityX = inputX * speed;
-        float accelTime = collisions.below ? accelerationTimeGrounded : accelerationTimeAirborne;
-        velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, accelTime);
-
-        if (IsLadder()
+        dashPressed = Input.GetKeyDown(KeyCode.LeftShift);
+#else
+        for (int i = 0; i < Input.touchCount; i++)
         {
-            // velocity
+            Touch touch = Input.GetTouch(i);
+            Vector2 pos = touch.position;
+
+            if (leftRect.Contains(pos))
+                input.x = -1f;
+            if (rightRect.Contains(pos))
+                input.x = 1f;
+
+            if (jumpRect.Contains(pos))
+            {
+                input.y = 1f;
+                if (touch.phase == TouchPhase.Began)
+                    jumpPressed = true;
+            }
+
+            if (dashRect.Contains(pos) && touch.phase == TouchPhase.Began)
+                dashPressed = true;
+
+            /*if (attackRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            {
+                int idx = playerAttack.primaryAttackID;
+                if (idx >= 0 && idx < playerAttack.attacks.Length)
+                    playerAttack.TryAttack(playerAttack.attacks[idx]);
+            }
+
+            if (rangedAttackRect.Contains(pos) && touch.phase == TouchPhase.Began)
+            {
+                int idx = playerAttack.rangedAttackID;
+                if (idx >= 0 && idx < playerAttack.attacks.Length)
+                    playerAttack.TryAttack(playerAttack.attacks[idx]);
+            }*/
         }
-        else
-        {
-            float gravity = velocity.y > 0 ? upGravity : downGravity;
-            velocity.y -= gravity * Time.deltaTime;
-        }
+#endif
+        body.SetInput(input);
+        if (jumpPressed)
+            body.Jump();
 
-        // Velocity clampen
-        velocity.y = Mathf.Max(velocity.y, (IsWall() && inputX != 0) ? -maxWallSlideSpeed : -maxFallSpeed);
+        // JUMP METHODEN AUF BODY
+        /*if (jumpPressed)
+            player.OnJumpInputDown();
+
+        if (dashPressed)
+            player.Dash();
+
+        player.SetInput(new Vector2(inputX, jumpHeld ? 1 : -1));
+        player.SetJumpHeld(jumpHeld);*/
     }
 
-    // STRUCTS
-    struct RaycastOrigins
+
+    private Rect GetScreenRect(RectTransform rectTransform)
     {
-        public Vector2 topLeft, topRight;
-        public Vector2 bottomLeft, bottomRight;
+        Vector3[] corners = new Vector3[4];
+        rectTransform.GetWorldCorners(corners);
+        string cornerlog = string.Join(", ", corners);
+        Game.Logger.Log("Getting Screen Rect " + rectTransform.gameObject.name + cornerlog);
+        return new Rect(corners[0], corners[2] - corners[0]);
     }
 
-    public struct CollisionInfo
-    {
-        public bool above, below;
-        public bool left, right;
-
-        public void Reset() => above = below = left = right = false;
-    }
-
-    // HELPER
-    public bool IsGround() => collisions.below;
-    public bool IsWall() => (collisions.left && !facingRight) || (collisions.right && facingRight);
-    public bool IsLadder() => Physics2D.OverlapCircle(transform.position, 0.5f, ladderLayer) != null;
 }
