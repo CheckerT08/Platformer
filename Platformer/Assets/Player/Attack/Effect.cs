@@ -87,20 +87,20 @@ public class PoisonEffect : TickEffect
     }
 }
 
-public class SpeedEffect : ValueChangeEffect<CharacterMotor2D>
+public class SpeedEffect : ValueChangeEffect<MovementBody>
 {
     void Start() => Init(
-        GetComponent<CharacterMotor2D>(),
+        GetComponent<MovementBody>(),
         m => m.speed,
         (m, v) => m.speed = v,
         1.5f
     );
 }
 
-public class SlownessEffect : ValueChangeEffect<CharacterMotor2D>
+public class SlownessEffect : ValueChangeEffect<MovementBody>
 {
     void Start() => Init(
-        GetComponent<CharacterMotor2D>(),
+        GetComponent<MovementBody>(),
         m => m.speed,
         (m, v) => m.speed = v,
         0.5f
