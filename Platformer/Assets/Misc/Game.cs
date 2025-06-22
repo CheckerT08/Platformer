@@ -1,14 +1,22 @@
 using System;
-using System.IO;
 using UnityEngine;
 
 public static class Game
 {
+    public static class OnStart
+    {
+        [RuntimeInitializeOnLoadMethod]
+        public static void Start()
+        {
+
+        }
+    }
+
     public static class Layer
     {
-        public static readonly LayerMask groundLayer = LayerMask.GetMask("Level Collidable");
-        public static readonly LayerMask enemyLayer = LayerMask.GetMask("Enemies");
-        public static readonly LayerMask ladderLayer = LayerMask.GetMask("Level Ladder");
+        public static readonly LayerMask ground = LayerMask.GetMask("Level Collidable");
+        public static readonly LayerMask enemy = LayerMask.GetMask("Enemies");
+        public static readonly LayerMask ladder = LayerMask.GetMask("Level Ladder");
 
         public static bool LayerMaskContainsLayer(LayerMask mask, int layer)
         {
@@ -56,15 +64,6 @@ public static class Game
         {
             obj.TryGetComponent<IDamageable>(out var target);
             target?.TakeDamage(damage);
-        }
-    }
-
-    public static class Logger
-    {
-        public static void Log(string message)
-        {
-            Debug.Log(message); // Optional: auch in Unity-Konsole
-            File.AppendAllText(Path.Combine(Application.persistentDataPath, "Logs.txt"), $"[{DateTime.Now:HH:mm:ss}] - {message}\n");
         }
     }
 }

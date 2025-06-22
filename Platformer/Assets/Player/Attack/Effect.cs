@@ -91,8 +91,8 @@ public class SpeedEffect : ValueChangeEffect<MovementBody>
 {
     void Start() => Init(
         GetComponent<MovementBody>(),
-        m => m.speed,
-        (m, v) => m.speed = v,
+        m => m.data.speed,
+        (m, v) => m.data.speed = v,
         1.5f
     );
 }
@@ -101,8 +101,8 @@ public class SlownessEffect : ValueChangeEffect<MovementBody>
 {
     void Start() => Init(
         GetComponent<MovementBody>(),
-        m => m.speed,
-        (m, v) => m.speed = v,
+        m => m.data.speed,
+        (m, v) => m.data.speed = v,
         0.5f
     );
 }

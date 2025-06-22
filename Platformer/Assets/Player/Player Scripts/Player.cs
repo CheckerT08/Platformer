@@ -1,10 +1,10 @@
+using System.Collections;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 [RequireComponent(typeof(MovementBody))]
 public class Player : MonoBehaviour, InputGetter
 {
-    MovementBody motor;
+    public MovementBody motor { private set; get; }
     PlayerAttack playerAttack;
 
     [SerializeField] private RectTransform leftArea;
@@ -16,13 +16,9 @@ public class Player : MonoBehaviour, InputGetter
 
     [HideInInspector] public Rect leftRect, rightRect, jumpRect, dashRect, attackRect, rangedAttackRect;
 
-
-
     [Header("Jump")]
-    public float jumpForce = 15f;
     public Vector2 wallJumpForce;
     public float coyoteTime = 0.2f;
-    public float jumpBufferTime = 0.2f;
     private float coyoteTimer;
 
     [Header("Dash")]
@@ -33,10 +29,7 @@ public class Player : MonoBehaviour, InputGetter
     private float dashTimer;
 
     [Header("Ladder")]
-    public LayerMask ladderLayer;
     public float climbSpeed = 5f;
-    private bool isClimbingLadder;
-    private Vector2 input;
 
     bool dashPressed;
     bool? jumpPressedAndHeld;
@@ -60,9 +53,9 @@ public class Player : MonoBehaviour, InputGetter
 
     void Update()
     {
+        if (isDashing) return;
         UpdateVariablesAndInput();
         HandleSpecialMovement();
-        ApplyVelocityToMovementBody();
     }
 
     void UpdateVariablesAndInput()
@@ -76,62 +69,64 @@ public class Player : MonoBehaviour, InputGetter
 
     void HandleSpecialMovement()
     {
-        #region jump
+        #region dash
+        if (dashPressed && canDash)
+        {
+            canDash = false;
+            isDashing = true;
+            dashTimer = dashTime;
+            StartCoroutine(Dash());
+            return;
+        }
+        #endregion
+
+        #region jump and ladder
         if (jumpPressedAndHeld == false)
         {
+            motor.gravityActive = true;
             if (motor.IsWallSliding())
             {
-                motor.OverrideVelocity(new Vector2(dir * wallJumpForce.x, wallJumpForce.y));
+                motor.OverrideVelocity(new Vector2(motor.facingRight ? -1 : 1 * wallJumpForce.x, wallJumpForce.y));
                 motor.Flip();
             }
             else if (coyoteTimer > 0)
             {
-                motor.Jump(jumpForce);
+                motor.Jump();
             }
         }
-        #endregion
-
-        #region wall sliding
-        if (motor.IsWallSliding() && motor.GetVelocity.y < 0)
+        else if (jumpPressedAndHeld == true)
         {
-            motor.OverrideVelocity(new Vector2(motor.GetVelocity.x, Mathf.Max(motor.GetVelocity.y, -motor.data.maxWallSlideSpeed)))
-        }
-        #endregion
-    }
-
-    private void ApplyVelocityToMovementBody()
-    {
-        if (isDashing) return;
-
-        if (isClimbingLadder)
-        {
-            motor.gravityActive = false;
-            motor.velocity.y = input.y * climbSpeed;
+            if (motor.GetVelocity().y > -5 && motor.IsTouchingLadder())
+            {
+                motor.gravityActive = false;
+                motor.OverrideVelocityY(climbSpeed);
+            }
         }
         else
         {
             motor.gravityActive = true;
         }
+        #endregion
+
+        #region wall sliding
+        if (motor.IsWallSliding() && motor.GetVelocity().y < 0)
+        {
+            motor.OverrideVelocityY(Mathf.Max(motor.GetVelocity().y, -motor.data.maxWallSlideSpeed));
+        }
+        #endregion
     }
 
-    private void HandleDash()
+     IEnumerator Dash()
     {
-        if (!isDashing) return;
-
-        dashTimer -= Time.deltaTime;
-        if (dashTimer <= 0)
+        motor.gravityActive = false;
+        while (dashTimer > 0)
         {
-            isDashing = false;
+            motor.OverrideVelocity(new Vector2((motor.facingRight ? 1 : -1) * dashSpeed, 0));
+            dashTimer -= Time.deltaTime;
+            yield return null;
         }
-        else
-        {
-            motor.velocity = new Vector2((isFacingRight ? 1 : -1) * dashSpeed, 0);
-        }
-    }
-
-    private void HandleLadder()
-    {
-        isClimbingLadder = Physics2D.OverlapCircle(transform.position, 0.5f, ladderLayer) && input.y != 0 && jumpHeld;
+        isDashing = false;
+        motor.gravityActive = true;
     }
 
     public float GetXInput()
@@ -205,8 +200,6 @@ public class Player : MonoBehaviour, InputGetter
     {
         Vector3[] corners = new Vector3[4];
         rectTransform.GetWorldCorners(corners);
-        string cornerlog = string.Join(", ", corners);
-        Game.Logger.Log("Getting Screen Rect " + rectTransform.gameObject.name + cornerlog);
         return new Rect(corners[0], corners[2] - corners[0]);
     }
 

@@ -50,7 +50,7 @@ public class PlayerAttack : MonoBehaviour
         if (attack.castTime > 0f)
             yield return new WaitForSeconds(attack.castTime);
 
-        yield return StartCoroutine(attack.Execute(transform.parent, Game.Layer.enemyLayer));
+        yield return StartCoroutine(attack.Execute(transform.parent, Game.Layer.enemy));
 
         globalCooldownTimer = attack.playerCooldown;
         yield return new WaitForSeconds(attack.playerCooldown);

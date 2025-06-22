@@ -48806,6 +48806,7 @@ RectTransform:
   - {fileID: 617146368}
   - {fileID: 1457374224}
   - {fileID: 460546873}
+  - {fileID: 1953952573}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -48978,7 +48979,6 @@ GameObject:
   - component: {fileID: 1443382962}
   - component: {fileID: 1443382964}
   - component: {fileID: 1443382963}
-  - component: {fileID: 1443382965}
   m_Layer: 3
   m_Name: PLAYER
   m_TagString: Untagged
@@ -49088,23 +49088,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80267213c302c254299260ece675cbcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 6
-  upGravity: 30
-  downGravity: 50
-  maxFallSpeed: 20
+  dataPublic: {fileID: 11400000, guid: adbae33a16d9aba4a915d07e4ac6f7d1, type: 2}
+  data: {fileID: 0}
   gravityActive: 1
-  accelerationTimeGrounded: 0.1
-  accelerationTimeAirborne: 0.2
-  maxWallSlideSpeed: 3
-  ladderLayer:
-    serializedVersion: 2
-    m_Bits: 128
-  ladderClimbSpeed: 5
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 64
-  velocity: {x: 0, y: 0}
-  isClimbingLadder: 0
 --- !u!114 &1443382964
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49117,36 +49103,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060707eac1ec6d64c87b05cec85a6599, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isFacingRight: 1
-  jumpForce: 15
-  wallJumpForceX: 12
-  wallJumpForceY: 15
-  coyoteTime: 0.2
-  jumpBufferTime: 0.2
-  dashSpeed: 25
-  dashTime: 0.2
-  ladderLayer:
-    serializedVersion: 2
-    m_Bits: 128
-  climbSpeed: 5
---- !u!114 &1443382965
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1443382953}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 438d16232f2eb2947be5c87cf3f08b71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  leftArea: {fileID: 0}
-  rightArea: {fileID: 0}
-  jumpArea: {fileID: 0}
-  dashArea: {fileID: 0}
-  attackArea: {fileID: 0}
-  rangedAttackArea: {fileID: 0}
+  leftArea: {fileID: 978109071}
+  rightArea: {fileID: 355720338}
+  jumpArea: {fileID: 848439731}
+  dashArea: {fileID: 358107478}
+  attackArea: {fileID: 617146368}
+  rangedAttackArea: {fileID: 1457374224}
   leftRect:
     serializedVersion: 2
     x: 0
@@ -49183,6 +49145,11 @@ MonoBehaviour:
     y: 0
     width: 0
     height: 0
+  wallJumpForce: {x: 13.47, y: 12.05}
+  coyoteTime: 0.2
+  dashSpeed: 25
+  dashTime: 0.2
+  climbSpeed: 5
 --- !u!1 &1457374223
 GameObject:
   m_ObjectHideFlags: 0
@@ -50253,7 +50220,7 @@ GameObject:
   - component: {fileID: 1953952573}
   - component: {fileID: 1953952572}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: ScreenLogger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50297,12 +50264,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1953952571}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 456.1989, y: 252.54109, z: 2.9737406}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -503.8011, y: -287.45892, z: 2.9737406}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1133829662}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2092418465
 GameObject:
@@ -50791,5 +50758,4 @@ SceneRoots:
   - {fileID: 678929836}
   - {fileID: 855117075}
   - {fileID: 1133829662}
-  - {fileID: 1953952573}
   - {fileID: 2134280304}
