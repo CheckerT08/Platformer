@@ -88,6 +88,11 @@ public class MovementBody : MonoBehaviour
         velocity = v;
     }
 
+    public void AddVelocity(Vector2 v)
+    {
+        velocity += v;
+    }
+
     public void OverrideVelocityX(float v)
     {
         velocity.x = v;
@@ -117,7 +122,7 @@ public class MovementBody : MonoBehaviour
         collisions.Reset();
 
         float dirY = Mathf.Sign(moveAmount.y);
-        float rayLength = 1 + skinWidth;
+        float rayLength = Mathf.Abs(moveAmount.y) + skinWidth + 0.05f;
 
         for (int i = 0; i < verticalRayCount; i++)
         {
