@@ -19,6 +19,6 @@ MonoBehaviour:
   downGravity: 50
   maxFallSpeed: 20
   gravityActive: 1
-  jumpForce: 30
+  jumpForce: 15
   maxWallSlideSpeed: 3
   ladderClimbSpeed: 5

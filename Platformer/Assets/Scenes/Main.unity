@@ -1095,7 +1095,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BoundingShape2D: {fileID: 2092418466}
-  m_Damping: 0.5
+  m_Damping: 0
   m_MaxWindowSize: -1
   m_Padding: 0
 --- !u!1 &355720337
@@ -48196,7 +48196,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 939264924}
+  m_Father: {fileID: 1433481729}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -0.705}
 --- !u!1 &678929835
 GameObject:
@@ -48593,6 +48593,7 @@ Transform:
   - {fileID: 939264924}
   - {fileID: 246087483}
   - {fileID: 1645945780}
+  - {fileID: 1433481729}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &939264923
@@ -48624,7 +48625,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 619394802}
   - {fileID: 1731515872}
   - {fileID: 2092418470}
   - {fileID: 726157434}
@@ -48806,7 +48806,6 @@ RectTransform:
   - {fileID: 617146368}
   - {fileID: 1457374224}
   - {fileID: 460546873}
-  - {fileID: 1953952573}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -48966,6 +48965,38 @@ MonoBehaviour:
   m_InputActionsPerSecond: 10
   m_RepeatDelay: 0.5
   m_ForceModuleActive: 0
+--- !u!1 &1433481728
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1433481729}
+  m_Layer: 0
+  m_Name: LIGHTING
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1433481729
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433481728}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 619394802}
+  m_Father: {fileID: 855117075}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1443382953
 GameObject:
   m_ObjectHideFlags: 0
@@ -49103,6 +49134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060707eac1ec6d64c87b05cec85a6599, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cameraFollowObject: {fileID: 726157435}
   leftArea: {fileID: 978109071}
   rightArea: {fileID: 355720338}
   jumpArea: {fileID: 848439731}
@@ -49145,7 +49177,7 @@ MonoBehaviour:
     y: 0
     width: 0
     height: 0
-  wallJumpForce: {x: 13.47, y: 12.05}
+  wallJumpForce: {x: 20.2, y: 21.3}
   coyoteTime: 0.2
   dashSpeed: 25
   dashTime: 0.2
@@ -50265,11 +50297,11 @@ Transform:
   m_GameObject: {fileID: 1953952571}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -503.8011, y: -287.45892, z: 2.9737406}
+  m_LocalPosition: {x: 456.1989, y: 252.54108, z: 2.9737406}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1133829662}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2092418465
 GameObject:
@@ -50759,3 +50791,4 @@ SceneRoots:
   - {fileID: 855117075}
   - {fileID: 1133829662}
   - {fileID: 2134280304}
+  - {fileID: 1953952573}

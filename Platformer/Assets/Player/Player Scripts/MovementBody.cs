@@ -108,7 +108,6 @@ public class MovementBody : MonoBehaviour
 
     public void Jump()
     {
-        print("Jump");
         if (collisions.below)
             velocity.y = data.jumpForce;
     }
