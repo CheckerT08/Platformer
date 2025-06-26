@@ -10,8 +10,6 @@ public class SlimeEnemy : EnemyBase
 
         if (CheckWall())
             Flip();
-        if (CheckWall()) print("Wall");
-
     }
 
     protected override void OnTick()

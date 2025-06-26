@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 [RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(InputGetter))]
@@ -12,13 +14,17 @@ public class MovementBody : MonoBehaviour
     [HideInInspector] public bool gravityActive;
 
     const float skinWidth = .015f;
-    const float dstBetweenRays = .25f;
+    const float dstBetweenRays = .05f;
     int horizontalRayCount, verticalRayCount;
     float horizontalRaySpacing, verticalRaySpacing;
 
     float velocityXSmoothing;
     float inputX;
-    public bool facingRight { get; private set; }
+    bool movementBlocked = false;
+    float blockTimer = 0f;
+    bool ignoreInput = false;
+    float ignoreInputTimer = 0f;
+    public bool facingRight { get; private set; } = true;
 
     BoxCollider2D boxCollider;
     InputGetter inputGetter;
@@ -35,11 +41,22 @@ public class MovementBody : MonoBehaviour
     }
 
     void Update()
-    {
-        UpdateRaycastOrigins();
-        GetInputFlip();
-        ModifyVelocity();
+    {            
+        blockTimer -= Time.deltaTime;
+        if (blockTimer <= 0)
+            movementBlocked = false;
+        ignoreInputTimer -= Time.deltaTime;
+        if (ignoreInputTimer <= 0)
+            ignoreInput = false;
 
+        UpdateRaycastOrigins();
+
+        if (!movementBlocked)
+        {
+            if (ignoreInput) inputX = 0f;
+            else GetInputFlip();
+            ModifyVelocity();
+        }
 
         Move(velocity * Time.deltaTime);
     }
@@ -77,8 +94,21 @@ public class MovementBody : MonoBehaviour
         #endregion
     }
 
+    public void BlockMovement(float time)
+    {
+        movementBlocked = true;
+        blockTimer = time;
+    }
+
+    public void IgnoreInput(float time)
+    {
+        ignoreInput = true;
+        ignoreInputTimer = time;
+    }
+
     public void Jump()
     {
+        print("Jump");
         if (collisions.below)
             velocity.y = data.jumpForce;
     }
@@ -114,7 +144,11 @@ public class MovementBody : MonoBehaviour
         Vector3 scale = transform.localScale;
         scale.x *= -1f;
         transform.localScale = scale;
+
+        OnFlip?.Invoke();
     }
+
+    public event Action OnFlip;
 
     void Move(Vector2 moveAmount)
     {
@@ -131,7 +165,6 @@ public class MovementBody : MonoBehaviour
             RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * dirY, rayLength, Game.Layer.ground);
             if (hit)
             {
-                Debug.Log($"Has hit {hit.collider.gameObject.name}. V");
                 moveAmount.y = (hit.distance - skinWidth) * dirY;
                 velocity.y = 0;
                 if (dirY == -1) collisions.below = true;
@@ -150,8 +183,6 @@ public class MovementBody : MonoBehaviour
             RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * dirX, rayLength, Game.Layer.ground);
             if (hit)
             {
-                Debug.Log($"Has hit {hit.collider.gameObject.name}. H");
-
                 moveAmount.x = (hit.distance - skinWidth) * dirX;
                 velocity.x = 0;
                 if (dirX == -1) collisions.left = true;
@@ -161,7 +192,10 @@ public class MovementBody : MonoBehaviour
         }
 
         transform.Translate(moveAmount);
+        OnMove?.Invoke();
     }
+
+    public event Action OnMove;
 
     void CalculateRaySpacing()
     {

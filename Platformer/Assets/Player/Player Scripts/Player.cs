@@ -6,6 +6,7 @@ public class Player : MonoBehaviour, InputGetter
 {
     public MovementBody motor { private set; get; }
     PlayerAttack playerAttack;
+    public CameraFollowObject cameraFollowObject;
 
     [SerializeField] private RectTransform leftArea;
     [SerializeField] private RectTransform rightArea;
@@ -26,7 +27,6 @@ public class Player : MonoBehaviour, InputGetter
     public float dashTime = 0.2f;
     private bool isDashing;
     private bool canDash = true;
-    private float dashTimer;
 
     [Header("Ladder")]
     public float climbSpeed = 5f;
@@ -49,6 +49,9 @@ public class Player : MonoBehaviour, InputGetter
             attackRect = GetScreenRect(attackArea);
             rangedAttackRect = GetScreenRect(rangedAttackArea);
         }
+
+        motor.OnFlip += () => cameraFollowObject.CallTurn();
+        motor.OnMove += () => cameraFollowObject.UpdateCamera();
     }
 
     void Update()
@@ -74,7 +77,6 @@ public class Player : MonoBehaviour, InputGetter
         {
             canDash = false;
             isDashing = true;
-            dashTimer = dashTime;
             StartCoroutine(Dash());
             return;
         }
@@ -85,9 +87,12 @@ public class Player : MonoBehaviour, InputGetter
         {
             motor.gravityActive = true;
             if (motor.IsWallSliding())
-            {
-                motor.OverrideVelocity(new Vector2(motor.facingRight ? -1 : 1 * wallJumpForce.x, wallJumpForce.y));
+            {                
                 motor.Flip();
+
+                Vector2 vel = new((motor.facingRight ? 1 : -1) * wallJumpForce.x, wallJumpForce.y);
+                motor.OverrideVelocity(vel);
+                motor.BlockMovement(0.2f);
             }
             else if (coyoteTimer > 0)
             {
@@ -102,10 +107,6 @@ public class Player : MonoBehaviour, InputGetter
                 motor.OverrideVelocityY(climbSpeed);
             }
         }
-        else
-        {
-            motor.gravityActive = true;
-        }
         #endregion
 
         #region wall sliding
@@ -116,17 +117,14 @@ public class Player : MonoBehaviour, InputGetter
         #endregion
     }
 
-     IEnumerator Dash()
+    IEnumerator Dash()
     {
-        motor.gravityActive = false;
-        while (dashTimer > 0)
-        {
-            motor.OverrideVelocity(new Vector2((motor.facingRight ? 1 : -1) * dashSpeed, 0));
-            dashTimer -= Time.deltaTime;
-            yield return null;
-        }
-        isDashing = false;
+        motor.OverrideVelocity(new Vector2((motor.facingRight ? 1 : -1) * dashSpeed, 0));
+        motor.BlockMovement(dashTime);
+
+        yield return new WaitForSeconds(dashTime);
         motor.gravityActive = true;
+        isDashing = false;
     }
 
     public float GetXInput()
@@ -202,5 +200,4 @@ public class Player : MonoBehaviour, InputGetter
         rectTransform.GetWorldCorners(corners);
         return new Rect(corners[0], corners[2] - corners[0]);
     }
-
 }
