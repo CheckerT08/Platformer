@@ -17,6 +17,11 @@ public class SlimeEnemy : EnemyBase
         
     }
 
+    public override float GetXInput()
+    {
+        return 0f;
+    }
+
     protected override void OnDeath()
     {
         base.OnDeath();

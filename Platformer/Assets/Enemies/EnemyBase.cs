@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Health))]
-public class EnemyBase : MonoBehaviour
+public abstract class EnemyBase : MonoBehaviour, InputGetter
 {
     [Header("Enemy Settings")]
     public EnemyStats enemyStats;
@@ -45,6 +45,8 @@ public class EnemyBase : MonoBehaviour
     protected virtual void OnTick()
     {
     }
+
+    public abstract float GetXInput();
 
     protected void Flip()
     {

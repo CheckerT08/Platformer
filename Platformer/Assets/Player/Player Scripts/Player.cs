@@ -85,11 +85,9 @@ public class Player : MonoBehaviour, InputGetter
         #region jump and ladder
         if (jumpPressedAndHeld == false)
         {
-            motor.gravityActive = true;
             if (motor.IsWallSliding())
-            {                
+            {
                 motor.Flip();
-
                 Vector2 vel = new((motor.facingRight ? 1 : -1) * wallJumpForce.x, wallJumpForce.y);
                 motor.OverrideVelocity(vel);
                 motor.BlockMovement(0.2f);
@@ -99,14 +97,16 @@ public class Player : MonoBehaviour, InputGetter
                 motor.Jump();
             }
         }
-        else if (jumpPressedAndHeld == true)
+        else if (jumpPressedAndHeld == true && motor.GetVelocity().y > -15 && motor.IsTouchingLadder())
         {
-            if (motor.GetVelocity().y > -5 && motor.IsTouchingLadder())
-            {
-                motor.gravityActive = false;
-                motor.OverrideVelocityY(climbSpeed);
-            }
+            motor.gravityActive = false;
+            motor.OverrideVelocityY(climbSpeed);
         }
+
+        motor.gravityActive = // Wenn irgendwas davon true ist ist gravity active
+            !motor.IsTouchingLadder() ||
+            jumpPressedAndHeld == null ||
+            motor.GetVelocity().y < -5;
         #endregion
 
         #region wall sliding
