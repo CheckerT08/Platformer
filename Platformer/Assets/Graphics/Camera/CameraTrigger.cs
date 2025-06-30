@@ -12,7 +12,6 @@ public class CameraTrigger : MonoBehaviour
     private void OnTriggerExit2D(Collider2D collision)
     {
         Vector2 exit = (collision.transform.position - coll.bounds.center).normalized;
-        // Y Übergeben wenn horizontal, pos übergeben wenn vertical
-        CameraManager.instance.SwapCamera(left, right, exit);
+        CameraManager.instance.SwapCamera(left, right, exit, pos);
     }
 }

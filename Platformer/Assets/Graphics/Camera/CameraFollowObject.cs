@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class CameraFollowObject : MonoBehaviour
 {
+    [HideInInspector] public static CamMode mode;
+    [HideInInspector] public static Vector2 pos;
+
     [Header("References")]
     [SerializeField] private Transform playerTransform;
 
@@ -22,8 +25,14 @@ public class CameraFollowObject : MonoBehaviour
 
     public void UpdateCamera()
     {
-        // Make the cameraFollowObject follow the player's position
-        transform.position = playerTransform.position;
+        Vector2 target = mode switch
+        {
+            CamMode.Horizontal => new Vector2(player.transform.position.x, pos.y),
+            CamMode.Static => pos,
+            _ => player.transform.position
+        };
+
+        transform.position = target;
     }
 
     public void CallTurn()
