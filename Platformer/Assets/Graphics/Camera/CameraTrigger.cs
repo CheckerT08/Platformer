@@ -4,10 +4,16 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider2D))]
 public class CameraTrigger : MonoBehaviour
 {
-    public CinemachineVirtualCamera left, right;
-    public BoxCollider2D coll;
+    public CamMode left, right;
+    private BoxCollider2D coll;
 
     public Vector2 pos;
+
+    private void OnValidate()
+    {
+        coll = GetComponent<BoxCollider2D>();
+        coll.isTrigger = true;
+    }
 
     private void OnTriggerExit2D(Collider2D collision)
     {

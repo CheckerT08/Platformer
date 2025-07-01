@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class CameraFollowObject : MonoBehaviour
 {
-    [HideInInspector] public static CamMode mode;
-    [HideInInspector] public static Vector2 pos;
+    public CamMode mode { get; set; }
+    public Vector2 pos { get; set; }
 
     [Header("References")]
     [SerializeField] private Transform playerTransform;
