@@ -11,8 +11,6 @@ public class CameraManager : MonoBehaviour
     public bool isLerpingYDamping { get; private set; }
     public bool lerpedFromPlayerFalling { get; set; }
 
-    private CinemachineFramingTransposer framingTransposer;
-
     private void Awake()
     {
         if (instance == null)
@@ -25,16 +23,13 @@ public class CameraManager : MonoBehaviour
     {
         if (currentMode == left && exitDir.x > 0f)
         {
-            followObject.pos = pos;
             currentMode = followObject.mode = right;
-            return;
-        }
-
-        if (currentMode == right && exitDir.x < 0f)
+        } else if (currentMode == right && exitDir.x < 0f)
         {
-            followObject.pos = pos;
             currentMode = followObject.mode = left;
-            return;
-        }
+        }  
+        
+        followObject.targetPosition = pos;
+        followObject.followerDelayTimer = 0f;
     }
 }

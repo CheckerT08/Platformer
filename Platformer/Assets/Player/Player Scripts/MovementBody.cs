@@ -191,10 +191,7 @@ public class MovementBody : MonoBehaviour
         }
 
         transform.Translate(moveAmount);
-        OnMove?.Invoke();
     }
-
-    public event Action OnMove;
 
     void CalculateRaySpacing()
     {

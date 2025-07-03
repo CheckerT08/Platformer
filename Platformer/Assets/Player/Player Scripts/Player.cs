@@ -51,7 +51,6 @@ public class Player : MonoBehaviour, InputGetter
         }
 
         motor.OnFlip += () => cameraFollowObject.CallTurn();
-        motor.OnMove += () => cameraFollowObject.UpdateCamera();
     }
 
     void Update()
