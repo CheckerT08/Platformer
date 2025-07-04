@@ -12,12 +12,14 @@ public class CameraTrigger : MonoBehaviour
     private void OnValidate()
     {
         coll = GetComponent<BoxCollider2D>();
+        Debug.Assert(coll, $"Collider auf {gameObject.name} is null");
         coll.isTrigger = true;
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
         Vector2 exit = (collision.transform.position - coll.bounds.center).normalized;
+        Debug.Assert(CameraManager.instance, "CamManager.Instance is null");
         CameraManager.instance.SwapCamera(left, right, exit, pos);
     }
 }

@@ -27,9 +27,8 @@ public class CameraManager : MonoBehaviour
         } else if (currentMode == right && exitDir.x < 0f)
         {
             currentMode = followObject.mode = left;
-        }  
-        
+        }
+        Debug.Assert(followObject, "FollowObj is null");
         followObject.targetPosition = pos;
-        followObject.followerDelayTimer = 0f;
     }
 }

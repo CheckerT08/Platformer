@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f562dc41546ca274ea989e9229a1ee8b, type: 3}
-  m_Name: Slime Enemy
+  m_Name: Slime Health
   m_EditorClassIdentifier: 
   maxHealth: 100
   canRegenerate: 0

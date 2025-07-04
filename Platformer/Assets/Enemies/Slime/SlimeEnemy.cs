@@ -2,14 +2,17 @@ using UnityEngine;
 
 public class SlimeEnemy : EnemyBase
 {
-    private float direction => movingRight ? 1f : -1f;
+    private float inputX = 1f;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        body.OnFlip += () => inputX = -inputX;
+    }
 
     private void Update()
     {
-        transform.Translate(Vector2.right * direction * speed * Time.deltaTime);
-
-        if (CheckWall())
-            Flip();
+        if (body.IsWall()) body.Flip();
     }
 
     protected override void OnTick()
@@ -19,7 +22,7 @@ public class SlimeEnemy : EnemyBase
 
     public override float GetXInput()
     {
-        return 0f;
+        return inputX;
     }
 
     protected override void OnDeath()

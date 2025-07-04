@@ -11,7 +11,6 @@ public class MovementBody : MonoBehaviour
 
     [Header("Collision")]
     Vector2 velocity;
-    [HideInInspector] public bool gravityActive;
 
     const float skinWidth = .015f;
     const float dstBetweenRays = .05f;
@@ -87,7 +86,9 @@ public class MovementBody : MonoBehaviour
         velocity.x = Mathf.SmoothDamp(velocity.x, targetVelocityX, ref velocityXSmoothing, accelTime);
         #endregion
         #region add gravity
-        if (!gravityActive) return;
+        Debug.Log("GRAVITYDFF"+ data.gravityActive, gameObject);
+        if (!data.gravityActive) return;
+        Debug.Log("GRAVITY", gameObject);
         float gravity = velocity.y > 0 ? data.upGravity : data.downGravity;
         velocity.y -= gravity * Time.deltaTime;
         velocity.y = Mathf.Clamp(velocity.y, -data.maxFallSpeed, float.MaxValue);
@@ -205,9 +206,10 @@ public class MovementBody : MonoBehaviour
         verticalRaySpacing = bounds.size.x / (verticalRayCount - 1);
     }
 
-    public bool IsGrounded() => collisions.below;
+    public bool IsGround() => collisions.below;
+    public bool IsWall() => (collisions.left && !facingRight) || (collisions.right && facingRight);
     public bool IsWallSliding() => (collisions.left || collisions.right) && !collisions.below;
-    public bool IsTouchingLadder() => Physics2D.OverlapCircle(transform.position, 0.5f, Game.Layer.ladder) != null;
+    public bool IsLadder() => Physics2D.OverlapCircle(transform.position, 0.5f, Game.Layer.ladder) != null;
 
 
     struct RaycastOrigins

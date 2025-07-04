@@ -66,4 +66,17 @@ public static class Game
             target?.TakeDamage(damage);
         }
     }
+
+    public static class Copy
+    {
+        public static void Set(string s)
+        {
+            GUIUtility.systemCopyBuffer = s;
+        }
+
+        public static string Get()
+        {
+            return GUIUtility.systemCopyBuffer;
+        }
+    }
 }

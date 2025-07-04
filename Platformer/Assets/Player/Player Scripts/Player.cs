@@ -37,7 +37,7 @@ public class Player : MonoBehaviour, InputGetter
     void Awake()
     {
         motor = GetComponent<MovementBody>();
-        playerAttack = GetComponent<PlayerAttack>();
+        playerAttack = GetComponentInChildren<PlayerAttack>();
 
         var canvas = leftArea?.GetComponentInParent<Canvas>();
         if (canvas != null)
@@ -58,13 +58,14 @@ public class Player : MonoBehaviour, InputGetter
         if (isDashing) return;
         UpdateVariablesAndInput();
         HandleSpecialMovement();
+        HandleAttack();
     }
 
     void UpdateVariablesAndInput()
     {
-        if (motor.IsGrounded())
+        if (motor.IsGround())
             canDash = true;
-        coyoteTimer = motor.IsGrounded() ? coyoteTime : coyoteTimer - Time.deltaTime;
+        coyoteTimer = motor.IsGround() ? coyoteTime : coyoteTimer - Time.deltaTime;
         dashPressed = GetDashPressed();
         jumpPressedAndHeld = GetJumpInputHeld();
     }
@@ -96,14 +97,14 @@ public class Player : MonoBehaviour, InputGetter
                 motor.Jump();
             }
         }
-        else if (jumpPressedAndHeld == true && motor.GetVelocity().y > -15 && motor.IsTouchingLadder())
+        else if (jumpPressedAndHeld == true && motor.GetVelocity().y > -15 && motor.IsLadder())
         {
-            motor.gravityActive = false;
+            motor.data.gravityActive = false;
             motor.OverrideVelocityY(climbSpeed);
         }
 
-        motor.gravityActive = // Wenn irgendwas davon true ist ist gravity active
-            !motor.IsTouchingLadder() ||
+        motor.data.gravityActive = // Wenn irgendwas davon true ist ist gravity active
+            !motor.IsLadder() ||
             jumpPressedAndHeld == null ||
             motor.GetVelocity().y < -5;
         #endregion
@@ -116,13 +117,28 @@ public class Player : MonoBehaviour, InputGetter
         #endregion
     }
 
+    void HandleAttack()
+    {
+        Debug.Assert(playerAttack, "NIGGAAA");
+        if (GetButonPressed(KeyCode.Y, attackRect))
+        {
+            playerAttack.TryAttack(playerAttack.primaryAttackID);
+        }
+
+        if (GetButonPressed(KeyCode.X, rangedAttackRect))
+        {
+            playerAttack.TryAttack(2);
+        }
+
+    }
+
     IEnumerator Dash()
     {
         motor.OverrideVelocity(new Vector2((motor.facingRight ? 1 : -1) * dashSpeed, 0));
         motor.BlockMovement(dashTime);
 
         yield return new WaitForSeconds(dashTime);
-        motor.gravityActive = true;
+        motor.data.gravityActive = true;
         isDashing = false;
     }
 
@@ -180,17 +196,7 @@ public class Player : MonoBehaviour, InputGetter
 
     bool GetDashPressed()
     {
-#if UNITY_EDITOR
-        return Input.GetKeyDown(KeyCode.LeftShift);
-#else
-    for (int i = 0; i < Input.touchCount; i++)
-    {
-        Touch touch = Input.GetTouch(i);
-        if (dashRect.Contains(touch.position) && touch.phase == TouchPhase.Began)
-            return true;
-    }
-    return false;
-#endif
+        return GetButonPressed(KeyCode.LeftShift, dashRect);
     }
 
     private Rect GetScreenRect(RectTransform rectTransform)
@@ -198,5 +204,21 @@ public class Player : MonoBehaviour, InputGetter
         Vector3[] corners = new Vector3[4];
         rectTransform.GetWorldCorners(corners);
         return new Rect(corners[0], corners[2] - corners[0]);
+    }
+
+    private bool GetButonPressed(KeyCode key, Rect rect)
+    {
+#if UNITY_EDITOR
+        return Input.GetKeyDown(key);
+#else
+        for (int i = 0; i < Input.touchCount; i++)
+        {
+            Touch touch = Input.GetTouch(i);
+            if (rect.Contains(touch.position) && touch.phase == TouchPhase.Began)
+                return true;
+        }
+        return false;
+#endif
+
     }
 }

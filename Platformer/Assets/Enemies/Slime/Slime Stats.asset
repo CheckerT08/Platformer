@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 511845530eb677546b812d410923cd01, type: 3}
-  m_Name: Slime
+  m_Name: Slime Stats
   m_EditorClassIdentifier: 
   damage: 10
   invincible: 0
