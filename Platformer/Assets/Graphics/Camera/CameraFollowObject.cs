@@ -1,5 +1,4 @@
 ﻿using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class CameraFollowObject : MonoBehaviour
@@ -12,7 +11,7 @@ public class CameraFollowObject : MonoBehaviour
             if (_mode != value)
             {
                 _mode = value;
-                followerDelayTimer = 0f;  // reset on mode change
+                followerDelayTimer = 0f;
             }
         }
     }

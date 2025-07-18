@@ -19,8 +19,10 @@ public class CameraTrigger : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        Vector2 exit = (collision.transform.position - coll.bounds.center).normalized;
         Debug.Assert(CameraManager.instance, "CamManager.Instance is null");
+        Debug.Assert(coll, $"Collider auf {gameObject.name} is null");
+        
+        Vector2 exit = (collision.transform.position - coll.bounds.center).normalized;
         CameraManager.instance.SwapCamera(left, right, exit, pos);
     }
 }
