@@ -1,18 +1,17 @@
 using UnityEngine;
 
-public class PlayerHealth : MonoBehaviour, IDamageable
+[RequireComponent(typeof(Health))]
+public class PlayerHealth : MonoBehaviour, Damageable
 {
-    private Health health;
+    Health health;
 
-    private void Awake()
+    private void Start()
     {
         health = GetComponent<Health>();
     }
 
-    public void TakeDamage(float amt)
+    public void TakeDamage(float amount)
     {
-        Debug.Log("Player takes damage: " + amt);
-        health?.TakeDamage(amt);
-        // z.B. Kamera wackeln, UI Feedback etc.
+        health.ReduceHealth(amount);
     }
 }

@@ -1,10 +1,8 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Enemies/Enemy Stats")]
+[CreateAssetMenu(menuName = "Enemy Stats")]
 public class EnemyStats : ScriptableObject
 {
-    public float damage;
-    public bool invincible;
+    [Tooltip("Damage to deal to player when colliding with player")] public float damage;
     public float speed;
-    public float wallCheckDistance;
 }

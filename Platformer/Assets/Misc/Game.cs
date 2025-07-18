@@ -17,8 +17,9 @@ public static class Game
         public static readonly LayerMask ground = LayerMask.GetMask("Level Collidable");
         public static readonly LayerMask enemy = LayerMask.GetMask("Enemies");
         public static readonly LayerMask ladder = LayerMask.GetMask("Level Ladder");
+        public static readonly LayerMask player = LayerMask.GetMask("Player");
 
-        public static bool LayerMaskContainsLayer(LayerMask mask, int layer)
+        public static bool Contains(LayerMask mask, int layer)
         {
             return (mask.value & (1 << layer)) != 0;
         }
@@ -62,7 +63,7 @@ public static class Game
     {
         public static void Damage(GameObject obj, float damage)
         {
-            obj.TryGetComponent<IDamageable>(out var target);
+            obj.TryGetComponent<Damageable>(out var target);
             target?.TakeDamage(damage);
         }
     }

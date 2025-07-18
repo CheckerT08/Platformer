@@ -1,24 +1,29 @@
 using UnityEngine;
 
-public class Health : MonoBehaviour, IDamageable
+public class Health : MonoBehaviour
 {
-    public HealthData data;
+    public HealthData dataPublic;
+    private HealthData data;
     private float currentHealth;
     private float timeSinceDamageTaken;
-    private float regenCycleCooldown;
+    private float timeSinceLastHealed;
     private bool canRegen;
 
 
     private void Awake()
     {
+        data = Instantiate(dataPublic);
         currentHealth = data.maxHealth;
         canRegen = data.canRegenerate;
+        if (gameObject.TryGetComponent(out BoxCollider2D coll)) 
+            coll.enabled = !data.invincible;
     }
 
-    public void TakeDamage(float damageAmount)
+    public virtual void ReduceHealth(float damageAmount)
     {
-        Debug.Log($"{gameObject.name} took {damageAmount} damage.");
+        if (data.invincible) return;
 
+        Debug.Log($"{gameObject.name} took {damageAmount} damage.");
         timeSinceDamageTaken = 0f;
         currentHealth -= damageAmount;
 
@@ -26,9 +31,9 @@ public class Health : MonoBehaviour, IDamageable
             Die();
     }
 
-    public void Heal(float healAmount)
+    public virtual void Heal(float healAmount)
     {
-        currentHealth += healAmount;
+        currentHealth = Mathf.Min(currentHealth + healAmount, data.maxHealth);
         Debug.Log("Healed " + healAmount + " hp. Current health: " + currentHealth);
     }
 
@@ -37,16 +42,16 @@ public class Health : MonoBehaviour, IDamageable
         timeSinceDamageTaken += Time.deltaTime;
         if (canRegen)
         {
-            regenCycleCooldown -= Time.deltaTime;
-            if (timeSinceDamageTaken > data.regenCooldown && regenCycleCooldown < 0f)
+            timeSinceLastHealed += Time.deltaTime;
+            if (timeSinceDamageTaken > data.timeFromDamageToHeal && timeSinceLastHealed > data.regenCycleCooldown)
             {
-                regenCycleCooldown = 1f;
+                timeSinceLastHealed = 0f;
                 Heal(data.regenAmount);
             }
         }
     }
 
-    private void Die()
+    protected virtual void Die()
     {
         Debug.Log($"{gameObject.name} died.");
         Destroy(gameObject);

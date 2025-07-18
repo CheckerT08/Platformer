@@ -1,4 +1,3 @@
-using Cinemachine;
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider2D))]
@@ -14,6 +13,8 @@ public class CameraTrigger : MonoBehaviour
         coll = GetComponent<BoxCollider2D>();
         Debug.Assert(coll, $"Collider auf {gameObject.name} is null");
         coll.isTrigger = true;
+        coll.includeLayers = Game.Layer.player;
+        coll.excludeLayers = ~Game.Layer.player;
     }
 
     private void OnTriggerExit2D(Collider2D collision)

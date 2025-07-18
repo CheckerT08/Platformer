@@ -20,14 +20,24 @@ public class SlimeEnemy : EnemyBase
         
     }
 
+    protected override void OnPlayerHit(Collider2D collision)
+    {
+        base.OnPlayerHit(collision);
+    }
+
     public override float GetXInput()
     {
         return inputX;
     }
 
-    protected override void OnDeath()
+    public override void TakeDamage(float damageAmount)
     {
-        base.OnDeath();
+        base.TakeDamage(damageAmount);
+    }
+
+    protected override void Die()
+    {
+        base.Die();
         Debug.Log("Slime explodes into goo!");
     }
 }

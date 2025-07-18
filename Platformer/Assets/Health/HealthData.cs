@@ -1,11 +1,14 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Health/HealthData")]
+[CreateAssetMenu(menuName = "Health Data")]
 public class HealthData : ScriptableObject
 {
     public float maxHealth;
+    [Space]
     public bool canRegenerate;
-    public float regenCooldown;
+    public float timeFromDamageToHeal;
+    public float regenCycleCooldown;
     public float regenAmount;
-    public float regenMultiplier;
+    [Space]
+    public bool invincible;
 }

@@ -3,39 +3,40 @@ using UnityEngine;
 
 [RequireComponent(typeof(Health))]
 [RequireComponent(typeof(MovementBody))]
-public abstract class EnemyBase : MonoBehaviour, InputGetter
+[RequireComponent(typeof(BoxCollider2D))]
+public abstract class EnemyBase : MonoBehaviour, InputGetter, Damageable
 {
     [Header("Enemy Settings")]
-    public EnemyStats enemyStats;
-    public float tickInterval = 0.2f;
+    public EnemyStats enemyStatsPublic;
+    private EnemyStats enemyStats;
+    protected float tickInterval = 0.2f;
     protected bool movingRight = true;
-    protected float speed;
-
     protected float wallCheckDistance;
-    protected LayerMask groundLayer;
+    protected Health health;
     protected MovementBody body;
+    protected BoxCollider2D coll;
 
     private Coroutine tickRoutine;
 
     protected virtual void Awake()
-    {
+    {        
+        health = GetComponent<Health>();
+        body = GetComponent<MovementBody>();
+        coll = GetComponent<BoxCollider2D>();
+
         if (enemyStats == null)
         {
             Debug.LogWarning($"No EnemyStats assigned to {gameObject.name}");
             return;
         }
+        enemyStats = Instantiate(enemyStatsPublic);
+        wallCheckDistance = coll.size.x;
 
-        // Werte aus Stats übernehmen
-        speed = enemyStats.speed;
-        wallCheckDistance = enemyStats.wallCheckDistance;
-        groundLayer = LayerMask.GetMask("Level Collidable");
-
-        // Tick starten
         tickRoutine = StartCoroutine(TickLoop(Random.Range(0f, tickInterval)));
 
-        body = GetComponent<MovementBody>();
     }
 
+    #region TICKING & ENEMY LOGIK
     private IEnumerator TickLoop(float startDelay)
     {
         yield return new WaitForSeconds(startDelay);
@@ -46,15 +47,34 @@ public abstract class EnemyBase : MonoBehaviour, InputGetter
         }
     }
 
-    protected virtual void OnTick()
+    protected abstract void OnTick();
+
+    private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (Game.Layer.Contains(Game.Layer.player, collision.gameObject.layer))
+        {
+            OnPlayerHit(collision);
+        }
+    }
+
+    protected virtual void OnPlayerHit(Collider2D collision)
+    {
+        Game.Damager.Damage(collision.gameObject, enemyStats.damage);
     }
 
     public abstract float GetXInput();
+    #endregion
 
-    protected virtual void OnDeath()
+    #region HEALTH
+
+    public virtual void TakeDamage(float damageAmount)
+    {
+        health.ReduceHealth(damageAmount);
+    }
+
+    protected virtual void Die()
     {
         if (tickRoutine != null) StopCoroutine(tickRoutine);
-        Debug.Log($"{gameObject.name} is dead.");
     }
+    #endregion
 }

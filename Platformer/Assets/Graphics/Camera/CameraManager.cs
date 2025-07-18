@@ -20,7 +20,8 @@ public class CameraManager : MonoBehaviour
     }
 
     public void SwapCamera(CamMode left, CamMode right, Vector2 exitDir, Vector2 pos)
-    {
+    {        Debug.Assert(followObject, "FollowObj is null");
+
         if (currentMode == left && exitDir.x > 0f)
         {
             currentMode = followObject.mode = right;
@@ -28,7 +29,6 @@ public class CameraManager : MonoBehaviour
         {
             currentMode = followObject.mode = left;
         }
-        Debug.Assert(followObject, "FollowObj is null");
         followObject.targetPosition = pos;
     }
 }
